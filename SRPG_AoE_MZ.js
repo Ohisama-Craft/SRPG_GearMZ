@@ -30,6 +30,10 @@
  * @off Don't move
  * @default false
  *
+ * @noteParam faceName
+ * @noteDir img/faces/
+ * @noteType file
+ * @noteData enemies
  *
  * @help
  * Allows you to define an area of effect for attacks
@@ -200,8 +204,12 @@
  * @on Move
  * @off Don't move
  * @default false
- *
- *
+ * 
+ * @noteParam faceName
+ * @noteDir img/faces/
+ * @noteType file
+ * @noteData enemies
+ * 
  * @help
  * 範囲効果のあるスキル・アイテムを作成できるようにします
  * アンチョビ氏による SRPG_AreaAttack.js をベースにしています
