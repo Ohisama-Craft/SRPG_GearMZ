@@ -66,6 +66,7 @@
 			se.volume = 90;
 			AudioManager.playSe(se);
 			this._srpgBattleResultWindow.open();
+			this._srpgBattleResultWindowCount = 90;
 			this.gainRewards();
 		}
 		// otherwise, skip right to the end
