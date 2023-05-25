@@ -402,13 +402,13 @@ Game_SummonEvent.prototype.constructor = Game_SummonEvent;
     };
     */
 
-    const _Game_Action_subject = Game_Action.prototype.subject;
+    const _SRPG_Game_Action_subject = Game_Action.prototype.subject;
     Game_Action.prototype.subject = function() {
         if ($gameSystem.isSRPGMode()) {
             const battlerArray = $gameSystem.EventToUnit(this._subjectEventId);
             return battlerArray[1];
         } else {
-            _Game_Action_subject.call(this);
+            return _SRPG_Game_Action_subject.call(this);
         }
     };
 
