@@ -597,7 +597,7 @@
 				var dx = $gameMap.roundXWithDirection(cell[0], d);
 				var dy = $gameMap.roundYWithDirection(cell[1], d);
 				if ($gameTemp.MoveTable(dx, dy)[0] >= 0) continue;
-				var dmove = Math.max(cell[2] - $gameMap.srpgMoveCost(dx, dy), 0);
+				var dmove = Math.max(cell[2] - $gameMap.srpgMoveCost(dx, dy, tag), 0);
 
 				var route = cell[3].concat(d);
 				$gameTemp.setMoveTable(dx, dy, dmove, route);
@@ -613,9 +613,13 @@
 	}
 
 	// get the cost of moving through a given space
-	Game_Map.prototype.srpgMoveCost = function(x, y) {
+	// modefied by OhisamaCraft
+	Game_Map.prototype.srpgMoveCost = function(x, y, tag) {
 		var terrain = this.terrainTag(x, y);
 
+		// tag
+		if (terrain <= tag) return 1;
+		
 		// map tags
 		if ($dataMap.meta["srpgTerrain"+terrain+"Cost"]) {
 			return Number($dataMap.meta["srpgTerrain"+terrain+"Cost"] || 1);
