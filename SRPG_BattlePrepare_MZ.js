@@ -524,11 +524,12 @@ const pluginName = "SRPG_BattlePrepare_MZ";
 //reconstruct update call menu function (not necessary, just because i feel this function is too twisted)
 //===================================================================================
 
+    // modified by OhisamaCraft
     Scene_Map.prototype.srpgCanNotUpdateCallMenu = function(){
         return ($gameSystem.isSubBattlePhase() === 'invoke_action' ||
         $gameSystem.srpgWaitMoving() == true ||
         $gameTemp.isAutoMoveDestinationValid() == true ||
-        $gameSystem.isSubBattlePhase() === 'status_window' ||
+        //$gameSystem.isSubBattlePhase() === 'status_window' ||
         $gameSystem.isSubBattlePhase() === 'actor_command_window' ||
         $gameSystem.isSubBattlePhase() === 'battle_window' ||
         $gameSystem.isSubBattlePhase() === 'prepare_command' || //shoukang add new condition: $gameSystem.isSubBattlePhase() === 'prepare_command'
@@ -600,6 +601,7 @@ const pluginName = "SRPG_BattlePrepare_MZ";
     };
 
 //This part is too complicated, I reconstruct and add my conditions
+// modified by OhisamaCraft
     var _SRPG_SceneMap_updateCallMenu = Scene_Map.prototype.updateCallMenu;
     Scene_Map.prototype.updateCallMenu = function() {
         if ($gameSystem.isSRPGMode() == true) {
@@ -628,6 +630,17 @@ const pluginName = "SRPG_BattlePrepare_MZ";
             //shoukang add exchange position condition
                 if (Input.isTriggered('cancel') || TouchInput.isCancelled()) {
                     this.srpgCancelExchangePosition();
+                }
+            } else if ($gameSystem.isSubBattlePhase() === 'status_window' && this.isMenuCalled()) {
+            // ステータスウィンドウの表示時
+                $gameSystem.clearSrpgStatusWindowNeedRefresh();
+                SoundManager.playCancel();
+                $gameTemp.clearActiveEvent();
+                $gameSystem.setSubBattlePhase('normal');
+                $gameTemp.clearMoveTable();
+                if ($gameSystem.isBattlePhase() === 'battle_prepare') {
+                    $gameTemp.setResetMoveList(true);
+                    $gameTemp.srpgMakePrepareTable();
                 }
             } else if ($gameSystem.isSrpgPreparePhaseOpenMenu() && !$gameMap.isEventRunning()){
                 this.callMenu();
