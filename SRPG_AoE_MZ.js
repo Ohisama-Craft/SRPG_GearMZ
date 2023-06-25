@@ -719,7 +719,7 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
 			if ($gameSystem.isSubBattlePhase() === 'actor_target' && $gameSystem.positionInRange(x, y)) {
 				$gameTemp.showArea(x, y);
 			} else if ($gameSystem.isSubBattlePhase() !== 'invoke_action' &&
-			$gameSystem.isSubBattlePhase() !== 'battle_window' && $gameSystem.isBattlePhase() == 'actor_phase') { //shoukang add && $gameSystem.isBattlePhase() == 'actor_phase'
+					   $gameSystem.isSubBattlePhase() !== 'battle_window' && $gameSystem.isBattlePhase() == 'actor_phase') { //shoukang add && $gameSystem.isBattlePhase() == 'actor_phase'
 				$gameTemp.clearArea();
 			}
 		}
