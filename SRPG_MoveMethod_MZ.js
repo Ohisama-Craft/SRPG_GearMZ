@@ -1,5 +1,8 @@
 //=============================================================================
 // SRPG_MoveMethod_MZ.js
+// Copyright (c) 2020 Shoukang. All rights reserved.
+// Released under the MIT license.
+// http://opensource.org/licenses/mit-license.php
 //-----------------------------------------------------------------------------
 // Free to use and edit    version 1.04 fix unclaimed variable and fastern isOccupied function
 //=============================================================================
@@ -26,6 +29,9 @@
  * @default true
  *
  * @help
+ * copyright 2020 Shoukang. all rights reserved.
+ * Released under the MIT license.
+ * ============================================================================
  * This plugin provides more move modes, improved pathfinding that can find the route in all conditions(it grabs data directly from movetable),
  * and easy way to make extensions.
  * It supports all move modes from SRPG_Core and provides new ones.
