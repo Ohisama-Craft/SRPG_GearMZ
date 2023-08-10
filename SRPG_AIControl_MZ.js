@@ -20,6 +20,9 @@
  * @default nearestOpponent
  * 
  * @help
+ * copyright 2020 SRPG Team. all rights reserved.
+ * Released under the MIT license.
+ * ============================================================================
  * This plugin is a work in progress!
  *
  * Requires SRPG_RangeControl, place this plugin below it.
