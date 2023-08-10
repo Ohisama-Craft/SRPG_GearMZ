@@ -1,5 +1,8 @@
 //=============================================================================
 //SRPG_Summon_MZ.js
+// Copyright (c) 2020 Shoukang. All rights reserved.
+// Released under the MIT license.
+// http://opensource.org/licenses/mit-license.php
 //=============================================================================
 /*:
  * @target MZ
@@ -22,7 +25,9 @@
  * @default 52
  *
  * @help
- *
+ * copyright 2020 Shoukang. all rights reserved.
+ * Released under the MIT license.
+ * ============================================================================
  * This plugin allow you to summon events which are copy of events from the summon map (the map with Summon Map Id).
  * You need to place all the type of events you want to summon in the summon map.
  * Summon units on unpassable tiles will be ignored.
