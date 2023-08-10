@@ -21,6 +21,9 @@
  * @default false
  *
  * @help
+ * copyright 2020 SRPG Team. all rights reserved.
+ * Released under the MIT license.
+ * ============================================================================
  * Minor improvements to the behavior of windows
  * 
  * Options:
