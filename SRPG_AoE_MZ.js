@@ -36,6 +36,9 @@
  * @noteData enemies
  *
  * @help
+ * copyright 2020 SRPG Team. all rights reserved.
+ * Released under the MIT license.
+ * ============================================================================
  * Allows you to define an area of effect for attacks
  * Based on SRPG_AreaAttack.js by アンチョビ
  *
@@ -211,6 +214,9 @@
  * @noteData enemies
  * 
  * @help
+ * copyright 2020 SRPG Team. all rights reserved.
+ * Released under the MIT license.
+ * ============================================================================
  * 範囲効果のあるスキル・アイテムを作成できるようにします
  * アンチョビ氏による SRPG_AreaAttack.js をベースにしています
  *
@@ -355,7 +361,7 @@
  * 注 / おひさまクラフトによる改変内容 ('modified by OhisamaCraft'で検索)
  * ・コスト消費の修正（応戦に対応するためgameTempからgameBattlerに変更）
  * ・<srpgAreaType:y> (AoE shape) に allActor, allEnemy を追加（射程範囲内のすべてのactor/enemyを対象とする）
- * ・Game_Player.prototype.triggerActionをSRPGgearMVに対応
+ * ・Game_Player.prototype.triggerActionをSRPGgearMZに対応
  * ・ヘルプの和訳
  * 
  */
