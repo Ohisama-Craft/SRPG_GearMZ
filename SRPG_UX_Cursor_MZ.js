@@ -92,6 +92,9 @@
  *
  *
  * @help
+ * copyright 2020 SRPG Team. all rights reserved.
+ * Released under the MIT license.
+ * ============================================================================
  * An assortment of changes and settings to make combat
  * quicker and cleaner
  * 
