@@ -1,14 +1,14 @@
 //=============================================================================
 // SRPG_core_MZ.js -SRPGギアMZ-
-// バージョン      : 1.03 + Q
-// 最終更新日      : 2023/6/21
+// バージョン      : 1.04 + Q
+// 最終更新日      : 2023/7/7
 // 製作            : Tkool SRPG team（有明タクミ、RyanBram、Dr.Q、Shoukang、Boomy）
 // 協力            : アンチョビさん、エビさん、Tsumioさん
 // ベースプラグイン : SRPGコンバータMV（神鏡学斗(Lemon slice), Dr. Q, アンチョビ, エビ, Tsumio）
 // 配布元          : https://ohisamacraft.nyanta.jp/index.html
 //-----------------------------------------------------------------------------
 // copyright 2017 - 2021 Lemon slice all rights reserved.
-// copyright 2022 Tkool SRPG team all rights reserved.
+// copyright 2022 Takumi Ariake all rights reserved.
 // Released under the MIT license.
 // http://opensource.org/licenses/mit-license.php
 //=============================================================================
@@ -376,8 +376,15 @@
  * @desc Spriteset for cursor and SRPG system icons
  * @type file
  * @dir img/characters/
- * @default srpg_set
+ * @default !srpg_set_type1
  *
+ * @param Path Image
+ * @parent SRPGFiles
+ * @desc Image to build the path from (Used in SRPG showPath MZ.js)
+ * @dir img/system/
+ * @type file
+ * @default srpgPath
+ * 
  * @param rewardSound
  * @parent SRPGFiles
  * @desc Sound effect for the reward window
@@ -759,7 +766,9 @@
  * @desc Select ON/OFF switch.
  * 
  * @help
- * 
+ * copyright 2017 - 2021 Lemon slice all rights reserved.
+ * copyright 2022 Takumi Ariake (Tkool SRPG team) all rights reserved.
+ * Released under the MIT license.
  * ============================================================================
  * Overview
  * ============================================================================
@@ -780,8 +789,8 @@
  * please put it below this plugin (SRPG_core_MZ.js).
  * 
  * - Required images
- * characters/srpg_set.png
- * system/srpgPath.png (when using SRPG_ShowPath)
+ * characters/!srpg_set_type1.png or !srpg_set_type2.png
+ * system/srpgPath.png
  * faces/BigMonster.png (optional)
  * 
  * - "Required" plug-ins
@@ -822,9 +831,16 @@
  * ============================================================================
  * Plug-in commands
  * ============================================================================
- * Plugin Commands:
- * SRPGBattle Start  # Start SRPG battle.
- * SRPGBattle End    # End SRPG battle.
+ * In SRPG Gear MZ, some of the processes that can be executed by 
+ * Event Command > Script can be more easily used by using plug-in commands.
+ * 
+ * Starting and ending a SRPG battle
+ * Obtaining event IDs, distances, and unit parameters
+ * Manipulating unit parameters
+ * Adding units (reinforcements)　　　　　　　　　　　　　　etc.
+ * 
+ * It also includes commands that are important to the progress of the battle, 
+ * such as 'Start/End SRPG battle'.
  * 
  * /!\ Caution /!\
  * You cannot move the map (event command "Move Location") during SRPG battle.
@@ -1821,7 +1837,14 @@
  * @desc SRPG戦闘で使うカーソルなどのキャラクター画像のファイル名
  * @type file
  * @dir img/characters/
- * @default srpg_set
+ * @default !srpg_set_type1
+ * 
+ * @param Path Image
+ * @parent SRPGFiles
+ * @desc 移動経路の画像のファイル名 (SRPG showPath MZ.jsで使用)
+ * @dir img/system/
+ * @type file
+ * @default srpgPath
  *
  * @param rewardSound
  * @parent SRPGFiles
@@ -2204,6 +2227,9 @@
  * @desc スイッチのON/OFFを選びます。
  *
  * @help
+ * copyright 2017 - 2021 Lemon slice all rights reserved.
+ * copyright 2022 Takumi Ariake (Tkool SRPG team) all rights reserved.
+ * Released under the MIT license.
  * ============================================================================
  * 概要
  * ============================================================================
@@ -2223,8 +2249,8 @@
  * 本プラグイン（SRPG_core_MZ.js）より下に入れるようにしてください。
  * 
  * - 必要な画像
- * characters/srpg_set.png
- * system/srpgPath.png（SRPG_ShowPath使用時）
+ * characters/!srpg_set_type1.png または !srpg_set_type2.png
+ * system/srpgPath.png
  * faces/BigMonster.png (任意)
  * 
  * - 併用“必須”プラグイン
@@ -2262,10 +2288,15 @@
  * ============================================================================
  * プラグインコマンド
  * ============================================================================
- * 戦闘の開始・終了や一部のスクリプトコマンドを利用できます。
+ * SRPGギアMZでは、イベントコマンド＞スクリプトで実行できる処理の一部を
+ * プラグインコマンドを使うことでより簡単に利用することが出来ます。
  * 
- *   SRPGBattle Start   # SRPG戦闘を開始する。
- *   SRPGBattle End     # SRPG戦闘を終了する。
+ *   戦闘の開始と終了
+ *   イベントIDや距離、ユニットのパラメータの取得
+ * 　ユニットのパラメータの操作
+ * 　ユニットの追加（増援）　　　　　　　　　　　　　　　など
+ * 
+ * また、『戦闘の開始と終了』のように、戦闘の進行に重要なコマンドも含まれています。
  * 
  * /!\ 注意 /!\
  * SRPG戦闘中のマップ移動（イベントコマンド『場所移動』）はできません。
@@ -2931,7 +2962,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
     var _textSrpgWinLoseCondition = parameters['textSrpgWinLoseCondition'] || '勝敗条件';
     var _textSrpgWinCondition = parameters['textSrpgWinCondition'] || '勝利条件';
     var _textSrpgLoseCondition = parameters['textSrpgLoseCondition'] || '敗北条件';
-    var _srpgSet = parameters['srpgSet'] || 'srpg_set';
+    var _srpgSet = parameters['srpgSet'] || '!srpg_set_type1';
     var _rewardSe = parameters['rewardSound'] || 'Item3';
     var _expSe = parameters['expSound'] || 'Up4';
 
@@ -6213,7 +6244,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
 
     // マップバトルでanimation position === 3（全体）を１度しか再生しないようにする（SRPG_AoE.js併用時）
     // フラグを設定する
-    Game_Map.prototype.setMapBattleAnimationFlagPos3 = function(flag) {
+    Game_Map.prototype.setMapBattleFlagPos3 = function(flag) {
         this._mapBattleAnimationFlagPos3 = flag;
     };
 
@@ -6800,9 +6831,6 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
             battlerArray[1].onAllActionsEnd();
             battlerArray[1].useSRPGActionTimes(99);
             battlerArray[1].setSrpgTurnEnd(true);
-            if ($gameSystem.isBattlePhase() === 'actor_phase' && !this.isSrpgActorTurnEnd()) {
-                $gameSystem.srpgStartAutoActorTurn(); //自動行動のアクターが行動する
-            }
         }
         return true;
     };
@@ -9302,17 +9330,29 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
             this.srpgAfterAction();
             return;
         }
+        this.srpgControlPhase(); // 戦闘フェーズの制御
+    };
+
+    // 戦闘フェーズの制御
+    Scene_Map.prototype.srpgControlPhase = function() {
         // アクターフェイズの開始処理
-        if ($gameSystem.isBattlePhase() === 'actor_phase' && $gameSystem.isSubBattlePhase() === 'initialize') {
-            if (!this.isSrpgActorTurnEnd()) {
-                $gameSystem.srpgStartAutoActorTurn(); // 自動行動のアクターが行動する
-            } else {
-                // autoSave
-                if (this.shouldAutosave()) {
-                    this.requestAutosave();
+        if ($gameSystem.isBattlePhase() === 'actor_phase') {
+            if ($gameSystem.isSubBattlePhase() === 'initialize') {
+                if (!this.isSrpgActorTurnEnd()) {
+                    $gameSystem.srpgStartAutoActorTurn(); // 自動行動のアクターが行動する
+                    return;
+                } else {
+                    // autoSave
+                    if (this.shouldAutosave()) this.requestAutosave();
+                    $gameSystem.setSubBattlePhase('normal');
+                    $gameSystem.preloadFaceGraphic(); // 顔グラフィックをプリロードする
+                    return;
                 }
-                $gameSystem.setSubBattlePhase('normal');
-                $gameSystem.preloadFaceGraphic(); // 顔グラフィックをプリロードする
+            } else if ($gameSystem.isSubBattlePhase() === 'normal') {
+                if (!this.isSrpgActorTurnEnd()) {
+                    $gameSystem.srpgStartAutoActorTurn(); // 自動行動のアクターが行動する
+                    return;
+                }
             }
         }
         // 自動アクターフェイズの処理
@@ -9492,13 +9532,13 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
         }
         this.eventAfterAction();
         $gameTemp.clearActiveEvent();
-        // 次のユニットのターンにつなげる
+        this.passTurnNextUnit(); // 次のユニットのターンにつなげる
+    };
+
+    // 次のユニットにターンを回す
+    Scene_Map.prototype.passTurnNextUnit = function() {
         if ($gameSystem.isBattlePhase() === 'actor_phase') {
-            if (!this.isSrpgActorTurnEnd()) {
-                $gameSystem.srpgStartAutoActorTurn(); //自動行動のアクターが行動する
-            } else {
-                $gameSystem.setSubBattlePhase('normal');
-            }
+            $gameSystem.setSubBattlePhase('normal');
         } else if ($gameSystem.isBattlePhase() === 'auto_actor_phase') {
             $gameSystem.setSubBattlePhase('auto_actor_command');
         } else if ($gameSystem.isBattlePhase() === 'enemy_phase') {
@@ -9829,17 +9869,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
             }
         }
         $gameTemp.setAutoBattleFlag(false);
-        if ($gameSystem.isBattlePhase() === 'actor_phase') {
-            if (!this.isSrpgActorTurnEnd()) {
-                $gameSystem.srpgStartAutoActorTurn(); //自動行動のアクターが行動する
-            } else {
-                $gameSystem.setSubBattlePhase('normal');
-            }
-        } else if ($gameSystem.isBattlePhase() === 'auto_actor_phase') {
-            $gameSystem.setSubBattlePhase('auto_actor_command');
-        } else if ($gameSystem.isBattlePhase() === 'enemy_phase') {
-            $gameSystem.setSubBattlePhase('enemy_command');
-        }
+        this.passTurnNextUnit(); // 次のユニットのターンにつなげる
         $gameTemp.setTurnEndFlag(false); // 処理終了
         return;
     };
@@ -11362,6 +11392,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
 		if ($gameSystem.isSRPGMode()) {
 			this._result.used = true;
 			this.srpgShowResults();
+            this.slipFloorAddDeath();// 戦闘不能の処理
 		}
 	};
 
@@ -11372,6 +11403,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
 		if (this._result.hpDamage != 0) {
 			this._result.used = true;
 			this.srpgShowResults();
+            this.slipFloorAddDeath();// 戦闘不能の処理
 		}
 	};
 
@@ -11380,6 +11412,21 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
 	Game_Screen.prototype.startFlashForDamage = function() {
 		if (!$gameSystem.isSRPGMode()) _startFlashForDamage_MB.call(this);
 	};
+
+    // スリップ・床ダメージでの戦闘不能処理
+    Game_Battler.prototype.slipFloorAddDeath = function() {
+        var event = $gameMap.event(this.srpgEventId());
+        if (this.isDead() && !event.isErased()) {
+            event.erase();
+            if (this.isActor()) {
+            var oldValue = $gameVariables.value(_existActorVarID);
+                $gameVariables.setValue(_existActorVarID, oldValue - 1);
+            } else {
+                var oldValue = $gameVariables.value(_existEnemyVarID);
+                $gameVariables.setValue(_existEnemyVarID, oldValue - 1);
+            }
+        }
+    };
 
 //====================================================================
 // on-map damage pop-ups
