@@ -1,5 +1,8 @@
 //=============================================================================
 // SRPG_AuraSkill_MZ.js
+// Copyright (c) 2020 Shoukang. All rights reserved.
+// Released under the MIT license.
+// http://opensource.org/licenses/mit-license.php
 //-----------------------------------------------------------------------------
 // Free to use and edit   version 1.06 fix bug for aura range 0. Fix bug for not removing states properly
 //=============================================================================
@@ -41,6 +44,9 @@
  * @default true
  *
  * @help
+ * copyright 2020 Shoukang. all rights reserved.
+ * Released under the MIT license.
+ * ============================================================================
  * This plugin provides several note tags for you to create Aura skills. 
  * An aura skill will add a state automatically to valid units in Aura range.
  * Passive Aura skills can be created by skill notetags. It will assign the (sub)state to valid units within the Aura range.
