@@ -1,14 +1,14 @@
 //=============================================================================
 // SRPG_core_MZ.js -SRPGギアMZ-
 // バージョン      : 1.04 + Q
-// 最終更新日      : 2023/7/7
+// 最終更新日      : 2023/8/10
 // 製作            : Tkool SRPG team（有明タクミ、RyanBram、Dr.Q、Shoukang、Boomy）
 // 協力            : アンチョビさん、エビさん、Tsumioさん
 // ベースプラグイン : SRPGコンバータMV（神鏡学斗(Lemon slice), Dr. Q, アンチョビ, エビ, Tsumio）
 // 配布元          : https://ohisamacraft.nyanta.jp/index.html
 //-----------------------------------------------------------------------------
 // copyright 2017 - 2021 Lemon slice all rights reserved.
-// copyright 2022 Takumi Ariake all rights reserved.
+// copyright 2022 Takumi Ariake (Tkool SRPG team) all rights reserved.
 // Released under the MIT license.
 // http://opensource.org/licenses/mit-license.php
 //=============================================================================
@@ -6244,7 +6244,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
 
     // マップバトルでanimation position === 3（全体）を１度しか再生しないようにする（SRPG_AoE.js併用時）
     // フラグを設定する
-    Game_Map.prototype.setMapBattleFlagPos3 = function(flag) {
+    Game_Map.prototype.setMapBattleAnimationFlagPos3 = function(flag) {
         this._mapBattleAnimationFlagPos3 = flag;
     };
 
