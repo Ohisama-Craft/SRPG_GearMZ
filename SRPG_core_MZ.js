@@ -1,7 +1,7 @@
 //=============================================================================
 // SRPG_core_MZ.js -SRPGギアMZ-
-// バージョン      : 1.05 + Q
-// 最終更新日      : 2023/8/12
+// バージョン      : 1.06 + Q
+// 最終更新日      : 2023/8/21
 // 製作            : Tkool SRPG team（有明タクミ、RyanBram、Dr.Q、Shoukang、Boomy）
 // 協力            : アンチョビさん、エビさん、Tsumioさん
 // ベースプラグイン : SRPGコンバータMV（神鏡学斗(Lemon slice), Dr. Q, アンチョビ, エビ, Tsumio）
@@ -25,12 +25,6 @@
  * @param WithYEP_BattleEngineCore
  * @parent BasicParam
  * @desc Set true when using with YEP_BattleEngineCore.
- * @type boolean
- * @default false
- * 
- * @param WithCommunityBasic_CoreScript
- * @parent BasicParam
- * @desc Set true when using with the community version core script published in Game Atsmaru.
  * @type boolean
  * @default false
  * 
@@ -1473,11 +1467,12 @@
  * 	<doubleAction: false>
  * 		# Unit will not act twice with that skill.
  *
+ * @url https://ohisamacraft.nyanta.jp/
  */
 
 /*:ja
  * @target MZ
- * @plugindesc RPGツクールMVでSRPG（タクティクス）方式の戦闘を実行します。SRPGコンバータMVをベースにしています。
+ * @plugindesc RPGツクールMZでSRPG（タクティクス）方式の戦闘を実行します。SRPGコンバータMVをベースにしています。
  * @author Tkool SRPG team（有明タクミ、RyanBram、Dr.Q、Shoukang、Boomy）
  *
  * @param BasicParam
@@ -1487,12 +1482,6 @@
  * @param WithYEP_BattleEngineCore
  * @parent BasicParam
  * @desc YEP_BattleEngineCoreと併用する場合はtrueに設定してください。
- * @type boolean
- * @default false
- * 
- * @param WithCommunityBasic_CoreScript
- * @parent BasicParam
- * @desc アツマールで公開されているコミュニティ版コアスクリプトと併用する場合はtrueに設定してください。
  * @type boolean
  * @default false
  * 
@@ -2837,6 +2826,7 @@
  *   <doubleAction:false>
  *      # そのスキルでは2回行動しなくなります。
  * 
+ * @url https://ohisamacraft.nyanta.jp/
  */
 
 //====================================================================
@@ -2914,7 +2904,6 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
 
     var parameters = PluginManager.parameters('SRPG_core_MZ');
     var _AAPwithYEP_BattleEngineCore = parameters['WithYEP_BattleEngineCore'] || 'false';
-    var _AAPwithCommunityBasic_CoreScript = parameters['WithCommunityBasic_CoreScript'] || 'false';
     var _srpgTroopID = Number(parameters['srpgTroopID'] || 1);
     var _srpgBattleSwitchID = Number(parameters['srpgBattleSwitchID'] || 1);
     var _existActorVarID = Number(parameters['existActorVarID'] || 1);
@@ -6264,7 +6253,6 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
             if (event.isStarting()) {
                 event.clearStartingFlag();
                 this._interpreter.setup(event.list(), event.eventId());
-                if (_AAPwithCommunityBasic_CoreScript === true) this._interpreter.setEventInfo(event.getEventInfo());
                 return true;
             }
         }
@@ -11015,10 +11003,11 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
 			return;
 		}
 		
-		// return when event running
-		if ($gameMap.isEventRunning() == true) {
-            		return;
-        	}
+        // return when event running
+        if ($gameMap.isEventRunning() == true) {
+            this._logWindow.hide();
+            return;
+        }
 
 		// update map skills
 		if (!this.waitingForSkill() && !this._srpgBattleResultWindow.isChangeExp()) {
@@ -11238,15 +11227,25 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
 				var animation = action.item().animationId;
 				if (animation < 0) animation = (user.isActor() ? user.attackAnimationId1() : user.attackAnimationId());
 				var animationData = $dataAnimations[animation];
-				if (animationData && 
-                    (animationData.displayType === 0 || $gameMap.mapBattleAnimationFlagPos3() !== true)) {
-                    if (animationData.displayType !== 1) {
-                        $gameTemp.requestAnimation([target.event()], animation);
+                if (animationData) {
+                    // MZ animation
+                    if (animationData.displayType) {
+                        if (animationData.displayType === 0 || $gameMap.mapBattleAnimationFlagPos3() !== true) {
+                            if (animationData.displayType !== 1) {
+                                $gameTemp.requestAnimation([target.event()], animation);
+                            } else {
+                                $gameTemp.requestAnimation([$gamePlayer], animation);
+                            }
+                            $gameMap.setMapBattleAnimationFlagPos3(true);
+                        }
+                    // MV animation
                     } else {
-                        $gameTemp.requestAnimation([$gamePlayer], animation);
+                        if (animationData.position !== 3 || $gameMap.mapBattleAnimationFlagPos3() !== true) {
+                            $gameTemp.requestAnimation([target.event()], animation);
+                            $gameMap.setMapBattleAnimationFlagPos3(true);
+                        }
                     }
-					$gameMap.setMapBattleAnimationFlagPos3(true);
-				}
+                }
 				data.phase = 'effect';
 				this._srpgSkillList.unshift(data);
 				// time-based delay
