@@ -1,7 +1,7 @@
 //=============================================================================
 // SRPG_core_MZ.js -SRPGギアMZ-
-// バージョン      : 1.06 + Q
-// 最終更新日      : 2023/8/21
+// バージョン      : 1.07 + Q
+// 最終更新日      : 2023/8/22
 // 製作            : Tkool SRPG team（有明タクミ、RyanBram、Dr.Q、Shoukang、Boomy）
 // 協力            : アンチョビさん、エビさん、Tsumioさん
 // ベースプラグイン : SRPGコンバータMV（神鏡学斗(Lemon slice), Dr. Q, アンチョビ, エビ, Tsumio）
@@ -11090,7 +11090,8 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
 	// no moving during a skill!
 	var _Game_Player_MB_canMove = Game_Player.prototype.canMove;
 	Game_Player.prototype.canMove = function() {
-		if ($gameSystem.isSRPGMode() && $gameSystem.isSubBattlePhase() === 'invoke_action') {
+		if ($gameSystem.isSRPGMode() && 
+            ($gameSystem.isSubBattlePhase() === 'invoke_action' || $gameSystem.isSubBattlePhase() === 'after_battle' )) {
 			return false;
 		}
 		return _Game_Player_MB_canMove.call(this);
@@ -11099,7 +11100,8 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
 	// no pausing, either!
 	var _updateCallMenu_MB = Scene_Map.prototype.updateCallMenu;
 	Scene_Map.prototype.updateCallMenu = function() {
-		if ($gameSystem.isSRPGMode() && $gameSystem.isSubBattlePhase() === 'invoke_action') {
+		if ($gameSystem.isSRPGMode() && 
+            ($gameSystem.isSubBattlePhase() === 'invoke_action' || $gameSystem.isSubBattlePhase() === 'after_battle' )) {
 			this.menuCalling = false;
 			return;
 		}
