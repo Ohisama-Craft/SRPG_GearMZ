@@ -1,7 +1,7 @@
 //=============================================================================
 // SRPG_core_MZ.js -SRPGギアMZ-
-// バージョン      : 1.08 + Q
-// 最終更新日      : 2023/8/31
+// バージョン      : 1.09 + Q
+// 最終更新日      : 2023/9/4
 // 製作            : Tkool SRPG team（有明タクミ、RyanBram、Dr.Q、Shoukang、Boomy）
 // 協力            : アンチョビさん、エビさん、Tsumioさん
 // ベースプラグイン : SRPGコンバータMV（神鏡学斗(Lemon slice), Dr. Q, アンチョビ, エビ, Tsumio）
@@ -3534,7 +3534,9 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
                 // アクターの最大数が制限されている場合は、制限数以上のイベントを消去する
                 if (_maxActorVarID > 0 && $gameVariables.value(_maxActorVarID) > 0 && 
                     actorNum >= $gameVariables.value(_maxActorVarID)) {
+                    $gameSystem.setEventToUnit(event.eventId(), 'null', null);
                     event.erase();
+                    event.setType('');
                     return;
                 }
                 // IDが0より大きい場合は指定したアクターIDで、0の場合はパーティメンバーの若い順にアクターを代入する
@@ -3546,6 +3548,8 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
                         var actor_unit = array[i];
                         if (!actor_unit) {
                             $gameSystem.setEventToUnit(event.eventId(), 'null', null);
+                            event.erase();
+                            event.setType('');
                             break;
                         }
                         i += 1;
@@ -7208,7 +7212,11 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
     Sprite_Gauge.prototype.currentValue = function() {
         if (this._battler) {
             if (this._battler.isActor() === true && this._statusType === "exp") {
-                return this._battler.currentExp() - this._battler.currentLevelExp();
+                if (this._battler.isMaxLevel()) {
+                    return this._battler.nextLevelExp() - this._battler.currentLevelExp();
+                } else {
+                    return this._battler.currentExp() - this._battler.currentLevelExp();   
+                }
             }
         }
         return _SRPG_Sprite_Gauge_currentValue.call(this);
@@ -7813,12 +7821,12 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
         var lineHeight = this.lineHeight();
         var exp = Math.round(this._rewards.exp * $gameParty.battleMembers()[0].finalExpRate());
         var width = this.innerWidth - this.padding * 2;
-        if (exp > 0) {
+        if (exp > 0 && this._level < this._battler.maxLevel()) {
             var text = TextManager.obtainExp.format(exp, TextManager.exp);
             this.resetTextColor();
             this.drawText(text, x, y, width);
         } else {
-            this._changeExp = 1;
+            exp = 0;
         }
         var color1 = ColorManager.hpGaugeColor1();
         var color2 = ColorManager.hpGaugeColor2();
@@ -7834,7 +7842,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
         }
         if (this._level >= this._battler.maxLevel()) {
             var rate = 1.0;
-            var nextExp = '-------'
+            var nextExp = '----'
         } else {
             var rate = (nowExp - this._battler.expForLevel(this._level)) / 
                        (this._battler.expForLevel(this._level + 1) - this._battler.expForLevel(this._level));
@@ -8329,6 +8337,15 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
     //----------------------------------------------------------------
     // SRPG戦闘時のメニュー画面のステータスウィンドウ
     //----------------------------------------------------------------
+    // 特定の状況で$gameParty.menuActor().index() = -1になった場合の対応
+    Window_MenuStatus.prototype.selectLast = function() {
+        if ($gameParty.menuActor().index() === -1) {
+            this.smoothSelect(0);
+        } else {
+            this.smoothSelect($gameParty.menuActor().index() || 0);
+        }
+    };
+
     // 行動終了や行動不能のユニットの表示を変更する
     const _SRPG_Window_MenuStatus_drawItemImage = Window_MenuStatus.prototype.drawItemImage;
     Window_MenuStatus.prototype.drawItemImage = function(index) {
