@@ -1,7 +1,7 @@
 //=============================================================================
 // SRPG_core_MZ.js -SRPGギアMZ-
-// バージョン      : 1.09 + Q
-// 最終更新日      : 2023/9/4
+// バージョン      : 1.10 + Q
+// 最終更新日      : 2023/9/13
 // 製作            : Tkool SRPG team（有明タクミ、RyanBram、Dr.Q、Shoukang、Boomy）
 // 協力            : アンチョビさん、エビさん、Tsumioさん
 // ベースプラグイン : SRPGコンバータMV（神鏡学斗(Lemon slice), Dr. Q, アンチョビ, エビ, Tsumio）
@@ -30,7 +30,7 @@
  * 
  * @param srpgTroopID
  * @parent BasicParam
- * @desc SRPGconverter use this troop ID.
+ * @desc SRPGgear use this troop ID.
  * @type number
  * @min 1
  * @default 1
@@ -786,6 +786,8 @@
  * characters/!srpg_set_type1.png or !srpg_set_type2.png
  * system/srpgPath.png
  * faces/BigMonster.png (optional)
+ * pictures/actorTurn.png(optional)
+ * pictures/enemyTurn.png(optional)
  * 
  * - "Required" plug-ins
  * This plugin shares some functions with SRPG_core_MZ
@@ -812,6 +814,7 @@
  * SRPG_Summon_MZ
  * SRPG_UX_Cursor_MZ
  * SRPG_UX_Windows_MZ
+ * SRPG_MouseOperation_MZ
  * 
  * ============================================================================
  * Terms in this plug-in
@@ -1487,7 +1490,7 @@
  * 
  * @param srpgTroopID
  * @parent BasicParam
- * @desc SRPGコンバータが占有するトループIDです。SRPG戦闘では、このIDのトループが使用されます。
+ * @desc SRPGギアが占有するトループIDです。SRPG戦闘では、このIDのトループが使用されます。
  * @type number
  * @min 1
  * @default 1
@@ -2241,6 +2244,8 @@
  * characters/!srpg_set_type1.png または !srpg_set_type2.png
  * system/srpgPath.png
  * faces/BigMonster.png (任意)
+ * pictures/actorTurn.png(任意)
+ * pictures/enemyTurn.png(任意)
  * 
  * - 併用“必須”プラグイン
  * SRPG_core_MZと一部の機能を共有しており、導入しないと動作しません。
@@ -2265,6 +2270,7 @@
  * SRPG_Summon_MZ
  * SRPG_UX_Cursor_MZ
  * SRPG_UX_Windows_MZ
+ * SRPG_MouseOperation_MZ
  * 
  * ============================================================================
  * このプラグイン内での用語
