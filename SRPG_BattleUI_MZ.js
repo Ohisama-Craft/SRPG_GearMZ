@@ -9,6 +9,15 @@
 * @target MZ
 * @plugindesc SRPG Battle UI adjustment, edited by Shoukang and Ohisama Craft.
 * @author SRPG Team
+* 
+* @param useTurnWindow
+* @desc Change the display of the Turns window.(true / false)
+* @type boolean
+* @default true
+*
+* @param textTurn
+* @desc A term for turn. It is displayed in the menu window.
+* @default turn
 *
 * @help
 * copyright 2020 SRPG Team. all rights reserved.
@@ -25,6 +34,15 @@
 * @plugindesc SRPG戦闘でのメニュー画面の変更(Shoukang, おひさまクラフトによる改変あり)
 * @author SRPG Team
 *
+* @param useTurnWindow
+* @desc ターン数ウィンドウの表示を変更します。(true / false)
+* @type boolean
+* @default true
+* 
+* @param textTurn
+* @desc ターン数を表す用語です。メニュー画面で使用されます。
+* @default ターン
+*
 * @help
 * copyright 2020 SRPG Team. all rights reserved.
 * Released under the MIT license.
@@ -34,11 +52,20 @@
 * おひさまクラフトによる改変あり
 */
 
-
+//====================================================================
+// ●Plugin
+//====================================================================
 (function () {
   'use strict';
 
   const switchId = 1;
+
+  var parameters = PluginManager.parameters('SRPG_BattleUI_MZ');
+  var _useTurnWindow = parameters['useTurnWindow'] || 'true';
+  var _textTurn = parameters['textTurn'] || 'ターン';
+
+  var coreParameters = PluginManager.parameters('SRPG_core_MZ');
+	var _turnVarID = Number(coreParameters['turnVarID'] || 3);
 
   const _Scene_Menu_createCommandWindow = Scene_Menu.prototype.createCommandWindow;
   Scene_Menu.prototype.createCommandWindow = function() {
@@ -47,6 +74,11 @@
       this._commandWindow.height = this._commandWindow.fittingHeight(this._commandWindow.maxItems());
       this._commandWindow.x = (Graphics.boxWidth - this._commandWindow.width)/2;
       this._commandWindow.y = (Graphics.boxHeight - this._commandWindow.height)/2; // 150
+      // ターンウィンドウも一緒に作る
+      const rect = this.turnWindowRect();
+      this._turnWindow = new Window_Turn(rect);
+      if (_useTurnWindow !== 'true') this._turnWindow.hide();
+      this.addWindow(this._turnWindow);
     }
   };
 
@@ -70,6 +102,57 @@
   Scene_Menu.prototype.commandFormation = function () {
     _Scene_Menu_commandFormation.call(this);
     this.showStatusAndHideCommand();
+  };
+
+  Scene_Menu.prototype.turnWindowRect = function() {
+    const ww = this.mainCommandWidth() - 60;
+    const wh = this.calcWindowHeight(1, true);
+    const wx = 0;
+    const wy = this.mainAreaBottom() - wh;
+    return new Rectangle(wx, wy, ww, wh);
+  };
+
+//-----------------------------------------------------------------------------
+// Window_Turn
+//
+// The window for displaying the SRPG turn.
+
+function Window_Turn() {
+  this.initialize(...arguments);
+}
+
+Window_Turn.prototype = Object.create(Window_Selectable.prototype);
+Window_Turn.prototype.constructor = Window_Turn;
+
+  Window_Turn.prototype.initialize = function(rect) {
+    Window_Selectable.prototype.initialize.call(this, rect);
+    this.refresh();
+  };
+
+  Window_Turn.prototype.colSpacing = function() {
+    return 0;
+  };
+
+  Window_Turn.prototype.refresh = function() {
+    const rect = this.itemLineRect(0);
+    const x = rect.x;
+    const y = rect.y;
+    const width = rect.width;
+    this.contents.clear();
+    this.drawCurrencyValue(this.value(), this.currencyUnit(), x, y, width);
+  };
+
+  Window_Turn.prototype.value = function() {
+    return $gameVariables.value(_turnVarID);
+  };
+
+  Window_Turn.prototype.currencyUnit = function() {
+    return _textTurn;
+  };
+
+  Window_Turn.prototype.show = function() {
+    this.refresh();
+    Window_Selectable.prototype.show.call(this);
   };
 
 // ==============================================================================
@@ -207,6 +290,7 @@ Window_MenuCommand.prototype.addFormationCommand = function() {
   Scene_Menu.prototype.showStatusAndHideCommand = function () {
     if ($gameSystem.isSRPGMode() && $gameSystem.isBattlePhase() !== 'battle_prepare') {
       this._commandWindow.hide();
+      this._turnWindow.hide();
       this._statusWindow.show();
     }
   };
@@ -214,6 +298,7 @@ Window_MenuCommand.prototype.addFormationCommand = function() {
   Scene_Menu.prototype.showCommandAndHideStatus = function () {
     if ($gameSystem.isSRPGMode() && $gameSystem.isBattlePhase() !== 'battle_prepare') {
       this._commandWindow.show();
+      if (_useTurnWindow === 'true') this._turnWindow.show();
       this._statusWindow.hide();
     }
   };
