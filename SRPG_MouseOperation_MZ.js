@@ -212,7 +212,7 @@ EST.SRPGMouseOperation.pluginName="SRPG_MouseOperation_MZ";
 // Graphics
 //=============================================================================
     Graphics._PointerType   = 'auto';
-    Graphics._hiddenPointer = false;
+    Graphics._hiddenPointer = true;
 
     Graphics.setHiddenPointer = function(value) {
         this._hiddenPointer = !!value;
