@@ -1,7 +1,7 @@
 //=============================================================================
 // SRPG_core_MZ.js -SRPGギアMZ-
-// バージョン      : 1.10 + Q
-// 最終更新日      : 2023/9/13
+// バージョン      : 1.11 + Q
+// 最終更新日      : 2023/11/24
 // 製作            : Tkool SRPG team（有明タクミ、RyanBram、Dr.Q、Shoukang、Boomy）
 // 協力            : アンチョビさん、エビさん、Tsumioさん
 // ベースプラグイン : SRPGコンバータMV（神鏡学斗(Lemon slice), Dr. Q, アンチョビ, エビ, Tsumio）
@@ -4320,6 +4320,11 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
         return 0;
     };
 
+    // 装備している武器のIDを返す（定義は、gameActor, gameEnemyで行う）
+    Game_BattlerBase.prototype.srpgWeaponId = function() {
+        return 0;
+    };
+
     // 武器の攻撃射程を返す（定義は、gameActor, gameEnemyで行う）
     Game_BattlerBase.prototype.srpgWeaponRange = function() {
         return 0;
@@ -4913,6 +4918,13 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
         // SRPG_RangeControl.jsで再定義する
     };
 
+    // 装備している武器のIDを返す
+    Game_Actor.prototype.srpgWeaponId = function() {
+        const weapons = this.weapons();
+        const weaponId = weapons[0] ? weapons[0].id : 0;
+        return weaponId;
+    };
+
     // 武器の攻撃射程を返す
     Game_Actor.prototype.srpgWeaponRange = function() {
         return this.srpgSkillRange($dataSkills[this.attackSkillId()]);
@@ -5145,6 +5157,12 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
         // SRPG_RangeControl.jsで再定義する
     };
 
+    // 装備している武器のIDを返す
+    Game_Enemy.prototype.srpgWeaponId = function() {
+        const weaponId = this.enemy().meta.srpgWeapon ? Number(this.enemy().meta.srpgWeapon) : 0;
+        return weaponId;
+    };
+
     // 武器の攻撃射程を返す
     Game_Enemy.prototype.srpgWeaponRange = function() {
         return this.srpgSkillRange($dataSkills[this.attackSkillId()]);
@@ -5159,7 +5177,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
     Game_Enemy.prototype.srpgWeaponSpecialRange = function() {
         var value = Game_BattlerBase.prototype.srpgWeaponSpecialRange.call(this);
         if (!this.hasNoWeapons()) {
-            var weapon = $dataWeapons[this.enemy().meta.srpgWeapon];
+            var weapon = $dataWeapons[this.srpgWeaponId()];
             if (weapon && weapon.meta.specialRange) {
                 value = weapon.meta.specialRange;
             } else if (this.enemy().meta.specialRange) {
@@ -5180,7 +5198,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
         if (this.enemy().meta.srpgReactionSkill) array.unshift(Number(this.enemy().meta.srpgReactionSkill));
         if (this.enemy().meta.srpgCounter === 'false') array.unshift(0);
         // 装備
-        var weapon = $dataWeapons[Number(this.enemy().meta.srpgWeapon)];
+        var weapon = $dataWeapons[this.srpgWeaponId()];
         if (this.isEquipValid(weapon)) {
             if (weapon.meta.srpgReactionSkill) array.unshift(Number(weapon.meta.srpgReactionSkill));
             if (weapon.meta.srpgCounter === 'false') array.unshift(0);
@@ -5215,7 +5233,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
             }
         }, this);
         // 装備
-        var weapon = $dataWeapons[Number(this.enemy().meta.srpgWeapon)];
+        var weapon = $dataWeapons[this.srpgWeaponId()];
         if (this.isEquipValid(weapon) && weapon.meta.srpgThroughTag && n < Number(weapon.meta.srpgThroughTag)) {
             n = Number(weapon.meta.srpgThroughTag);
         }
@@ -5229,7 +5247,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
 
     // 武器を装備しているか返す
     Game_Enemy.prototype.hasNoWeapons = function() {
-        var flag = !$dataWeapons[Number(this.enemy().meta.srpgWeapon)];
+        var flag = !$dataWeapons[this.srpgWeaponId()];
         this.states().forEach(function(state) {
             if (state && state.meta.srpgWeaponBreak) flag = true;
         }, this);
@@ -5243,7 +5261,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
         // エネミー
         if (this.enemy().meta.srpgWeaponSkill) value = Number(this.enemy().meta.srpgWeaponSkill);
         // 装備 (将来的には、武器以外も作る？)
-        var weapon = $dataWeapons[Number(this.enemy().meta.srpgWeapon)];
+        var weapon = $dataWeapons[this.srpgWeaponId()];
         if (this.isEquipValid(weapon)) {
             if (weapon.meta.srpgWeaponSkill) value = Number(weapon.meta.srpgWeaponSkill);
         }
@@ -5259,7 +5277,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
     Game_Enemy.prototype.traitObjects = function() {
         var objects = _SRPG_Game_Enemy_traitObjects.call(this);
         if ($gameSystem.isSRPGMode() === true) {
-            var weapon = $dataWeapons[Number(this.enemy().meta.srpgWeapon)];
+            var weapon = $dataWeapons[this.srpgWeaponId()];
             if (this.isEquipValid(weapon)) {
                 objects.push(weapon);
             }
@@ -5271,7 +5289,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
     Game_Enemy.prototype.paramPlus = function(paramId) {
         var value = Game_Battler.prototype.paramPlus.call(this, paramId);
         if ($gameSystem.isSRPGMode() === true) {
-            var weapon = $dataWeapons[Number(this.enemy().meta.srpgWeapon)];
+            var weapon = $dataWeapons[this.srpgWeaponId()];
             if (this.isEquipValid(weapon)) {
                 value += weapon.params[paramId];
             }
@@ -5284,7 +5302,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
         if (this.hasNoWeapons()) {
             return this.bareHandsAnimationId();
         } else {
-            var weapons = $dataWeapons[Number(this.enemy().meta.srpgWeapon)];
+            var weapons = $dataWeapons[this.srpgWeaponId()];
             return weapons ? weapons.animationId : 1;
         }
     };
@@ -7412,7 +7430,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
 
     // エネミーの装備（武器）を描画する
     Window_StatusBase.prototype.drawEnemySrpgEqiup = function(enemy, x, y) {
-        var weapon = $dataWeapons[Number(enemy.enemy().meta.srpgWeapon)];
+        var weapon = $dataWeapons[this.srpgWeaponId()];
         this.changeTextColor(ColorManager.systemColor());
         this.drawText(_textSrpgEquip, x, y, 92);
         this.resetTextColor();
@@ -8050,7 +8068,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
             if (battler.isActor()) {
                 var item = battler.weapons()[0];
             } else {
-                var item = $dataWeapons[Number(battler.enemy().meta.srpgWeapon)];
+                var item = $dataWeapons[battler.srpgWeaponId()];
             }
             this.drawIcon(item.iconIndex, x + 2, y + 2);
         // 通常攻撃以外のスキルアイコンはそのまま表示する
@@ -8078,7 +8096,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
                     if (battler.isActor()) {
                         var item = battler.weapons()[0];
                     } else {
-                        var item = $dataWeapons[Number(battler.enemy().meta.srpgWeapon)];
+                        var item = $dataWeapons[battler.srpgWeaponId()];
                     }
                     this.drawItemName(item, x, y, 280 - costWidth);
                 // 通常攻撃以外のスキル名はそのまま表示する
