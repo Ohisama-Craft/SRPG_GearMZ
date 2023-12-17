@@ -1,6 +1,6 @@
 //=============================================================================
 // SRPG_core_MZ.js -SRPGギアMZ-
-// バージョン      : 1.11 + Q
+// バージョン      : 1.12 + Q
 // 最終更新日      : 2023/11/24
 // 製作            : Tkool SRPG team（有明タクミ、RyanBram、Dr.Q、Shoukang、Boomy）
 // 協力            : アンチョビさん、エビさん、Tsumioさん
@@ -5552,9 +5552,9 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
             for (var i = 0; i < this.SrpgBattleEnemys().length; i++) {
                 var enemy = this.SrpgBattleEnemys()[i];
                 if ($gameSystem.isSideView()) {
-                    enemy.setScreenXy(Graphics.width / 4 + 240 * i + enemy.correctionX(), Graphics.height / 2 + 48 + enemy.correctionY());
+                    enemy.setScreenXy(Graphics.boxWidth / 4 + 240 * i + enemy.correctionX(), Graphics.boxHeight / 2 + 48 + enemy.correctionY());
                 } else {
-                    enemy.setScreenXy(Graphics.width / 2 + enemy.correctionX(), Graphics.height / 2 + 32 + 96 * i + enemy.correctionY());
+                    enemy.setScreenXy(Graphics.boxWidth / 2 + enemy.correctionX(), Graphics.boxHeight / 2 + 32 + 96 * i + enemy.correctionY());
                 }
                 this._enemies.push(enemy);
             }
@@ -7032,13 +7032,31 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
     Sprite_Actor.prototype.setActorHome = function(index) {
         if ($gameSystem.isSRPGMode() === true) {
             if (_AAPwithYEP_BattleEngineCore === 'true') {
-                this.setHome(Graphics.width * 3 / 4 - 12 - index * 240, Graphics.height / 2 + 48);
+                this.setHome(Graphics.boxWidth * 3 / 4 - 12 - index * 240, Graphics.boxHeight / 2 + 48);
 	            this.moveToStartPosition();
 	        } else {
-                this.setHome(Graphics.width * 3 / 4 - 12 - index * 240, Graphics.height / 2 + 48);
+                this.setHome(Graphics.boxWidth * 3 / 4 - 12 - index * 240, Graphics.boxHeight / 2 + 48);
             }
         } else {
             _SRPG_Sprite_Actor_setActorHome.call(this, index);
+        }
+    };
+
+    // Overriding the startEntryMotion method of Sprite_Actor
+    Sprite_Actor.prototype.startEntryMotion = function() {
+        if ($gameSystem.isSRPGMode()) {
+            // Code to execute during SRPG mode
+            // Directly set the actor's position to their battle position
+            this.setHome(this._homeX, this._homeY);
+            this.moveToStartPosition();
+        }
+    };
+
+    // Override moveToStartPosition to prevent movement
+    Sprite_Actor.prototype.moveToStartPosition = function() {
+        if ($gameSystem.isSRPGMode()) {
+            // Code to execute during SRPG mode
+            // Overriding this method to prevent the actor from moving to start position
         }
     };
 
