@@ -469,27 +469,46 @@ Game_Map.prototype.updatePlayerFollowMouse = function() {
 };
 */
 
-  var _SRPG_MO_Game_Player_moveByInput = Game_Player.prototype.moveByInput;
-  Game_Player.prototype.moveByInput = function() { 
-    if ($gameSystem.isSRPGMode() === true && $gameSystem.isPlayerFollowMouse() &&
-        !this.isMoving() && this.canMove() && !Graphics._hiddenPointer) {
-          var x = $gameMap.canvasToMapX(TouchInput._mouseX);
-          var y = $gameMap.canvasToMapY(TouchInput._mouseY);
-          if ($gamePlayer.x !== x || $gamePlayer.y !== y) {
-            $gamePlayer.setPosition(x, y);
-            //patch for show path dan AOE
-            if ($gameSystem.isSubBattlePhase() === 'actor_target' && $gameSystem.positionInRange(x, y)) {
-              $gameTemp.showArea(x, y);
-            } else if ($gameSystem.isSubBattlePhase() !== 'invoke_action' &&
-                       $gameSystem.isSubBattlePhase() !== 'battle_window' && $gameSystem.isBattlePhase() == 'actor_phase') {
-              $gameTemp.clearArea();
+var _SRPG_MO_Game_Player_moveByInput = Game_Player.prototype.moveByInput;
+Game_Player.prototype.moveByInput = function() { 
+    // Cursor will not follow the mouse under these conditions
+    if ($gameSystem.isSRPGMode() === true && 
+        $gameSystem.isPlayerFollowMouse() &&
+        $.Parameters.isCursorFollowMouse && 
+        $.Parameters.isWheelPrevNext &&
+        $gameSystem._isBattlePhase === 'actor_phase' &&
+        $gameSystem.isSubBattlePhase() === 'normal' &&
+        !this.isMoving() && this.canMove() && 
+        !Graphics._hiddenPointer) {
+    } else {
+        // Original behavior
+        if ($gameSystem.isSRPGMode() === true && 
+            $gameSystem.isPlayerFollowMouse() &&
+            !this.isMoving() && this.canMove() && 
+            !Graphics._hiddenPointer) {
+            var x = $gameMap.canvasToMapX(TouchInput._mouseX);
+            var y = $gameMap.canvasToMapY(TouchInput._mouseY);
+            if ($gamePlayer.x !== x || $gamePlayer.y !== y) {
+                $gamePlayer.setPosition(x, y);
+                // Patch for show path and AOE
+                if ($gameSystem.isSubBattlePhase() === 'actor_target' && 
+                    $gameSystem.positionInRange(x, y)) {
+                    $gameTemp.showArea(x, y);
+                } else if ($gameSystem.isSubBattlePhase() !== 'invoke_action' &&
+                           $gameSystem.isSubBattlePhase() !== 'battle_window' && 
+                           $gameSystem.isBattlePhase() == 'actor_phase') {
+                    $gameTemp.clearArea();
+                }
+                if(!$gameTemp.activeEvent()) return;
+                if($gameSystem.isSubBattlePhase() === 'actor_move') $gameTemp.showRoute(x, y);
             }
-            if(!$gameTemp.activeEvent()) return;
-            if($gameSystem.isSubBattlePhase() === 'actor_move') $gameTemp.showRoute(x, y);
-          }
+        }
     }
     _SRPG_MO_Game_Player_moveByInput.call(this);
-  };
+};
+
+
+
 
 $.Game_Player_updateScroll = Game_Player.prototype.updateScroll;
 Game_Player.prototype.updateScroll = function(lastScrolledX, lastScrolledY) {
