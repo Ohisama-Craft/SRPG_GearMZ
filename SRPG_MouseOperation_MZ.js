@@ -327,7 +327,7 @@ Input.update = function() {
 };
 
 //=============================================================================
-// TouchInput
+// MouseInput
 //=============================================================================
 $.TouchInput_onMouseMove = TouchInput._onMouseMove;
 TouchInput._onMouseMove = function(event) {
@@ -335,6 +335,15 @@ TouchInput._onMouseMove = function(event) {
   this._mouseX = Graphics.pageToCanvasX(event.pageX);
   this._mouseY = Graphics.pageToCanvasY(event.pageY);
   Graphics.setHiddenPointer(false);
+};
+
+//=============================================================================
+// TouchInput
+//=============================================================================
+$.TouchInput_onTouchStart = TouchInput._onTouchStart;
+TouchInput._onTouchStart = function(event) {
+    $.TouchInput_onTouchStart.call(this, event);
+    Graphics.setHiddenPointer(true);
 };
 
 TouchInput.atLeftBorder = function(){
