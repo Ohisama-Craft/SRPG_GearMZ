@@ -327,7 +327,7 @@ Input.update = function() {
 };
 
 //=============================================================================
-// TouchInput
+// MouseInput
 //=============================================================================
 $.TouchInput_onMouseMove = TouchInput._onMouseMove;
 TouchInput._onMouseMove = function(event) {
@@ -335,6 +335,40 @@ TouchInput._onMouseMove = function(event) {
   this._mouseX = Graphics.pageToCanvasX(event.pageX);
   this._mouseY = Graphics.pageToCanvasY(event.pageY);
   Graphics.setHiddenPointer(false);
+};
+
+$.TouchInput_onWheel = TouchInput._onWheel;
+TouchInput._onWheel = function(event) {
+    $.TouchInput_onWheel.call(this, event);
+    if ($gameSystem.isSRPGMode()) {
+        Graphics.setHiddenPointer(true);
+    }
+};
+
+
+/*Note for Mr Takumi Ariake
+I created an initial function for $.TouchInput_onLeftButtonDown, where a left mouse click will make the mouse pointer
+to reappear. But I haven't found a way to make the mouse pointer appear right above the actor event
+where the cursor(player) position is and directly select the actor event to enter the next subbattlephase,
+namely `actor_move`.
+This is the function used by SRPG Studio software.
+*/
+$.TouchInput_onLeftButtonDown = TouchInput._onLeftButtonDown;
+TouchInput._onLeftButtonDown = function(event) {
+    $.TouchInput_onLeftButtonDown.call(this, event);
+    if ($gameSystem.isSRPGMode()) {
+        Graphics.setHiddenPointer(false);
+    }
+};
+
+
+//=============================================================================
+// TouchInput
+//=============================================================================
+$.TouchInput_onTouchStart = TouchInput._onTouchStart;
+TouchInput._onTouchStart = function(event) {
+    $.TouchInput_onTouchStart.call(this, event);
+    Graphics.setHiddenPointer(true);
 };
 
 TouchInput.atLeftBorder = function(){
