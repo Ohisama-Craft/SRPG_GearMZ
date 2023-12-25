@@ -5835,6 +5835,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
             var characterIndex = 0;
             this.setImage(characterName, characterIndex);
             this._followers.refresh();
+	    this.setPriorityType(2)
         } else {
             _SRPG_Game_Player_refresh.call(this);
         }
