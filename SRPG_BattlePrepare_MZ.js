@@ -107,6 +107,106 @@
  * Replace the old Battle UI plugin with the modified one in my github page. https://github.com/ShoukangHong/Shoukang_SRPG_plugin
  */
 
+/*:ja
+ * @target MZ
+ * @plugindesc SRPG戦闘開始前に戦闘準備フェイズを追加します（おひさまクラフトによる改変）。
+ * @author Shoukang
+ *
+ * @param disable actor prepare command
+ * @desc 無効にした場合、ユニット選択コマンドからのみアクターを追加/削除できるようになります。
+ * @type boolean
+ * @default true
+ *
+ * @param auto open menu
+ * @desc 戦闘開始後に自動的にメニューを開きます。
+ * @type boolean
+ * @default true
+ *
+ * @param textBattlerNumber
+ * @desc バトラー数の名前。メニューウィンドウ上に表示されます。
+ * @default 参加人数
+ *
+ * @param textFinishPrepare
+ * @desc 準備完了の名前。メニューウィンドウ上に表示されます。
+ * @default 戦闘開始
+ *
+ * @param textFormation
+ * @desc ユニット選択の名前。メニューウィンドウ上に表示されます。
+ * @default ユニット選択
+ *
+ * @param textPosition
+ * @desc 初期配置の名前。メニューウィンドウ上に表示されます。
+ * @default 初期配置
+ *
+ * @param textPrepareEvent
+ * @desc 準備イベントの名前。メニューウィンドウ上に表示されます。
+ * @default 準備
+ *
+ *
+ * @param textExchange
+ * @desc アクターの位置交換の名前です。アクターコマンドウィンドウ上に表示されます。
+ * @default 位置交換
+ *
+ * @param textStatus
+ * @desc アクターのステータスの名前。アクターコマンドウィンドウ上に表示されます。
+ * @default ステータス
+ *
+ * @param textRemove
+ * @desc アクターの削除の名前。アクターコマンドウィンドウ上に表示されます。
+ * @default 外す
+ *
+ * @param lockIconIndex
+ * @desc ロックアイコンのインデックス。
+ * @default 195
+ * 
+ * @command Enable
+ * @text 戦闘準備有効化
+ * @desc 戦闘準備シーンを有効にします。
+ * 
+ * @command Disable
+ * @text 戦闘準備無効化
+ * @desc 戦闘準備シーンを無効にします。
+ *
+ * @help
+ * copyright 2020  Shoukang. all rights reserved.
+ * Released under the MIT license.
+ * ============================================================================
+ * 本プラグインは戦闘開始前の準備を可能にします。戦闘準備フェイズにて装備変更や敵のステータスの確認、アクターの追加や削除、
+ * アクターの位置交換を行えるようになります。
+ * <type:actor><id:0>を設定したイベントは動かすことができます。今回の新しいバージョンでは、自動戦闘メンバーも動かすことが可能になりました。
+ * 新しい手順：battleStart---battlePrepare---actorturn---.......
+ * ========================================================================================================================
+ * イベントメモ:
+ * <type:afterPrepare>  # 準備が完了したとき、このイベントが起動します。
+ * <type:prepare>       # メインメニュー上で準備コマンドがトリガーされたとき、このイベントが起動します。ショップ等の起動したいイベントに使用することができます。
+ *==========================================================================================================================
+ * プラグインコマンド
+ * DisableSRPGPrepare       戦闘準備を有効化します。
+ * EnableSRPGPrepare        戦闘準備を無効化します。
+ * =========================================================================================================================
+ * スクリプト呼び出し:
+ *
+ * $gameParty.setMaxActor(n) 戦闘中のアクターの最大数を設定します。デフォルトは<type:actor>イベントの数と等しいです。
+ * $gameParty.setMinActor(n) 戦闘中のアクターの最小数を設定します。デフォルトは1です。
+ *
+ * 特定のアクター数にする必要がある場合、'SRPGBattle Start'プラグインコマンドの後でこれらのスクリプトを実行してください。
+ * これらの最大最小数は次の戦闘には引き継がれません。
+ *==========================================================================================================================
+ * V1.07 戦闘不能アクターの選択を無効にしました。これを機能させるにはSRPG_Core内の'var array = $gameParty.allMembers()'を検索し、
+ *'var array = $gameParty.allMembers().filter(function(actor){return actor.isAlive()})'で置換してください。
+ * V1.06 最少アクター数のバグおよびセーブファイルのバグを修正しました。
+ * V1.05 SRPG_AdvancedInteractionをサポート
+ * V1.04 微小な不具合を修正
+ * V1.03 新しい外観と機能を実装
+ * v1.02 複雑な制御フローを再構成。削除が無効化されているとき、アクターコマンドを非表示に
+ * v1.01 微小なバグを修正、パラメータ説明を変更
+ * v1.00 リリース
+ * =========================================================================================================================
+ * 互換性:
+ * 本プラグインはSRPG_Coreを大幅に変更します。SRPG_Coreより下の、できる限り上方に配置してください。
+ * 古いBattle UIプラグインを導入している場合、作者のGitHubページにある修正版に置き換えてください。https://github.com/ShoukangHong/Shoukang_SRPG_plugin
+ */
+
 //====================================================================
 // ●Function Declaration
 //====================================================================
@@ -693,10 +793,12 @@ const pluginName = "SRPG_BattlePrepare_MZ";
 
 //Rewrite startSRPG to run srpgStartBattlePrepare instead of actor turn when SRPG battle start
     Game_System.prototype.startSRPG = function() {
-        this._SRPGMode = true;
-        $gameSwitches.setValue(_srpgBattleSwitchID, true);
+        $gamePlayer.storeOriginalData(); // プレイヤーの透明度などのdataを保存する
+        this._SRPGMode = true; // SRPG戦闘中のフラグをオンにする
+        $gameSwitches.setValue(_srpgBattleSwitchID, true);// SRPG戦闘中のフラグはスイッチにも代入する
         this._isBattlePhase = 'initialize';
         this._isSubBattlePhase = 'initialize';
+        $gamePlayer.setSrpgPlayerData(); // プレイヤーの透明度などのdataをSRPG用（カーソル用）に変更する
         $gamePlayer.refresh();
         $gameTemp.clearActiveEvent();
         this.clearData(); //データの初期化
