@@ -202,6 +202,203 @@
  (with permission to be used as part of SRPG Project)
 */
 
+/*:ja
+@plugindesc SRPGでのマウス操作を改善します（おひさまクラフトによる改変）。
+@author SRPG Team
+@target MZ
+
+@param borderMoveSettings
+@text 境界スクロール設定
+
+@param borderSwitch
+@text 境界スクロールスイッチ
+@desc SRPG戦闘外で境界スクロールを有効化するためのスイッチID。SRPG戦闘でのみ有効にする場合は0に設定してください。
+@type switch
+@parent borderMoveSettings
+@default 0
+
+@param borderDistance1
+@text 境界距離1
+@desc カメラスクロールがゆっくりになる前の、境界までの距離。
+@type Number
+@parent borderMoveSettings
+@default 55
+
+@param scrollSpeed1
+@text スクロール速度1
+@desc マウスが境界距離1にあるときのスクロールの速度。
+@type Number
+@parent borderMoveSettings
+@default 3.5
+
+@param useSecondSpeed
+@text 2フェイズ速度
+@desc trueの場合：境界に近づくと速度が変わります。falseの場合：速度は変わりません。
+@type boolean
+@parent borderMoveSettings
+@default true
+
+@param borderDistance2
+@text 境界距離2
+@desc カメラスクロールが早くなる前の、境界までの距離。境界距離1よりも小さい値にする必要があります。
+@type Number
+@parent borderMoveSettings
+@default 15
+
+@param scrollSpeed2
+@text 境界速度2
+@desc マウスが境界距離2にあるときのスクロールの速度。
+@type Number
+@parent borderMoveSettings
+@default 5.5
+
+@param dragScrollSettings
+@text ドラッグスクロール設定
+
+@param dragSwitch
+@text ドラッグスクロールスイッチ
+@desc 中クリックが有効な場合に、マップのドラッグの有効化のためのスイッチ。この機能を無効にする場合、0にしてください。
+@type switch
+@parent dragScrollSettings
+@default 0
+
+@param dragSpeed
+@text ドラッグスクロール速度
+@desc ドラッグスクロールの速度。高いほど早いです。2～4を推奨します。
+@type Number
+@parent dragScrollSettings
+@default 2
+
+@param cursorFollowMouse
+@text カーソル追跡マウス設定
+
+@param isCursorFollowMouse
+@text カーソルをマウスに追跡させるか
+@desc trueの場合、SRPG戦闘にてカーソルがマウスを追跡します。falseの場合、カーソルはマウスクリックによって移動します。
+@type boolean
+@parent cursorFollowMouse
+@default true
+
+@param useCenteringFeature
+@text 移動/ターゲットセンタリング
+@desc trueの場合、アクター移動時と対象選択時にカーソルによるセンタリングが有効になります。falseの場合、無効になります。
+@type boolean
+@parent cursorFollowMouse
+@default true
+
+@param centerCameraDelay
+@text センタリング時カメラディレイ
+@desc プレイヤーへのカーソルセンタリングのディレイ値。100～4000の間で設定できます。推奨は1000です。
+@type Number
+@max 4000
+@min 100
+@parent cursorFollowMouse
+@default 800
+
+@param wheelSettings
+@text マウスホイール設定
+
+@param isWheelPrevNext
+@text ホイール→次アクター
+@desc trueの場合、ホイールによる次/直前アクター切り替えが有効になります。falseの場合、ホイールによる切り替えは行われません。
+@type boolean
+@parent wheelSettings
+@default true
+
+@param isWheelCenter
+@text 次アクター→センタリング
+@desc trueの場合、ホイールによるアクター切り替え時にセンタリングされます。falseの場合、センタリングされません。
+@type boolean
+@parent wheelSettings
+@default true
+
+@help
+ * Copyright (c) 2020 SRPG team. All rights reserved.
+ * Released under the MIT license.
+ * ===================================================================
+ ■ 情報      ╒══════════════════════════╛
+ SRPG Mouse Operation
+ Version: 1.1
+ By SRPG Team, Ohisama Craft
+
+ ■ 概要     ╒══════════════════════════╛
+ 本プラグインはSRPG用のマウス操作機能を提供します。 
+
+ ■ 機能         ╒══════════════════════════╛
+ - 境界スクロール→マウスが画面境界（端）に近いとき、カメラがスクロールします。
+ - ドラッグスクロール→マウス中クリック時、カメラをドラッグします。
+ - SRPGカーソルがマウス移動に追跡します。
+ - マウスホイールによる未行動アクター選択
+
+  ■ 更新履歴       ╒══════════════════════════╛
+ v1.1 2023.8.17            おひさまクラフトによる改変
+ v1.0 2020.11.09           プラグイン完成
+
+ ■ プラグインダウンロード ╒══════════════════════════╛
+ v1.0 https://www.dropbox.com/s/4uep2mwnwnxwd2c/SRPG_Mouse_Operation.js?dl=0
+ v1.1 https://github.com/Ohisama-Craft
+
+ ■ スクリーンショット ╒══════════════════════════╛
+ Coming Soon
+  
+ ■ デモ ╒══════════════════════════╛
+ https://ohisamacraft.nyanta.jp/index.html
+
+ ■ 使い方       ╒══════════════════════════╛
+ 1. 本プラグインを以下の順番で配置してください:
+ SRPG_core.js
+ SRPG_UX_Cursor.js
+ SRPG_AOE.js
+ SRPG_ShowPath.js
+ <<<<<  本プラグイン [SRPG_Mouse_Operation.js]
+
+ 2. プラグインパラメータを設定してください。
+      ~ [任意] SRPG戦闘外で境界スクロールを有効化するためのスイッチIDを設定
+      ~ [任意] ドラッグスクロールを有効化するためのスイッチIDを設定
+      ~ カーソル移動のディレイを設定（作者は0を推奨）
+
+ 3. SRPG戦闘外で境界スクロールを有効化する場合、2で設定したスイッチIDをイベント等によりオンにしてください。
+    境界スクロールはSRPGでは自動的に有効になります。
+
+ ■ 依存関係     ╒══════════════════════════╛
+ SRPG_core.js
+ SRPG_UX_Cursor.js
+ SRPG_ShowPath.js
+ SRPG_AOE.js
+
+ ■ 互換性    ╒══════════════════════════╛
+ ほとんどのプラグインと互換性があります。
+ 本プラグインはEST_STRATEGY_MOUSE_CAM.jsとは互換性がありませんが、これは本プラグインがそのフォークバージョンであるためです。
+ そのためほとんどのコードが含まれています。両方導入してしまうと、上書きしたメソッドに不都合が生じます。
+
+ ■ パラメータ       ╒══════════════════════════╛
+  >> 境界スクロールスイッチ
+      ~ SRPG戦闘外で境界スクロールを有効化するためのスイッチです。SRPG戦闘でのみ有効化したい場合、0にしてください。
+  >> 境界距離1
+      ~ カメラスクロールがゆっくりになる前の距離。
+  >> スクロール速度1
+      ~ マウスが境界距離1にある場合のスクロール速度。
+  >> 2フェイズ速度
+      ~ True -> 境界に近づくにつれて速度が可変 
+        False -> 速度不変
+  >> 境界距離2
+      ~ カメラスクロールが速くなる前の距離。境界距離1よりも小さな値にする必要があります。
+  >> スクロール速度2
+      ~ マウスが境界距離2にある場合のスクロール速度。
+  >> ドラッグスクロールスイッチ
+      ~ 中クリックによるマップのドラッグ操作を有効化するためのスイッチ。無効にする場合は0に設定してください。
+  >> ドラッグスクロール速度
+      ~ ドラッグスクロールの速度。高いほど速いです。2～4を推奨します。
+  >> カーソル追跡スイッチ
+    ~ マウス移動へのカーソル追跡を有効化するためのスイッチ。常に有効化する場合、0に設定してください。
+  >> カーソル追跡ディレイ
+    ~ マウス移動へのカーソル追跡のディレイ。
+ 
+ ■ Extra Credit ╒══════════════════════════╛
+ Estriole for EST_STRATEGY_MOUSE_CAM.js plugin code
+ (with permission to be used as part of SRPG Project)
+*/
+
 var EST = EST || {};
 EST.SRPGMouseOperation = EST.SRPGMouseOperation || {};
 EST.SRPGMouseOperation.pluginName="SRPG_MouseOperation_MZ";
@@ -316,11 +513,9 @@ Game_Map.prototype.scrollDownRight = function(distance) {
     this.scrollRight(distance);
 };
 
-
 //=============================================================================
 // Update setHiddenPointer for some battlePhase & subBattlePhase
 //=============================================================================
-
 // setHiddenPointer in the beginning of actor turn
 $.srpgStartActorTurn = Game_System.prototype.srpgStartActorTurn;
 Game_System.prototype.srpgStartActorTurn = function() {
@@ -329,7 +524,8 @@ Game_System.prototype.srpgStartActorTurn = function() {
 };
 
 // setHiddenPointer after selecting any command
-// I don't know how to prevent Graphics.setHiddenPointer(false); in $.TouchInput_onMouseMove to be executed until the cursor really arrived to target
+// I don't know how to prevent Graphics.setHiddenPointer(false); 
+// in $.TouchInput_onMouseMove to be executed until the cursor really arrived to target
 $.startActorTargetting = Scene_Map.prototype.startActorTargetting;
 Scene_Map.prototype.startActorTargetting = function() {
     $.startActorTargetting.call(this);
@@ -345,7 +541,6 @@ Scene_Map.prototype.srpgAfterAction = function() {
         Graphics.setHiddenPointer(true);
     }
 };
-
 
 /* It seems this block of code can be used for Graphics.setHiddenPointer(true); in some subBattlePhase
 $.srpgControlPhase = Scene_Map.prototype.srpgControlPhase;
@@ -383,7 +578,6 @@ TouchInput._onWheel = function(event) {
         Graphics.setHiddenPointer(true);
     }
 };
-
 
 // Note for Mr Takumi Ariake
 // I created the initial function for $.TouchInput_onLeftButtonDown, where a left mouse click will make the mouse pointer to reappear.
