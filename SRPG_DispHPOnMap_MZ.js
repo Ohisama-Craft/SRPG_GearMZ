@@ -13,6 +13,68 @@
 
 /*:
  * @target MZ
+ * @plugindesc v1.01 It enables to display HP on the map during SRPG combat (edited by Ohisama-Craft).
+ * @author ヱビ
+ * 
+ * @param actorHPColor1
+ * @type number
+ * @min 0
+ * @desc The color1 (color No. of img/system/Window.png) of HP gauges of actors.
+ * @default 20
+ * 
+ * @param actorHPColor2
+ * @type number
+ * @min 0
+ * @desc The color2 (color No. of img/system/Window.png) of HP gauges of actors.
+ * @default 21
+ * 
+ * @param enemyHPColor1
+ * @type number
+ * @min 0
+ * @desc The color1 (color No. of img/system/Window.png) of HP gauges of enemies.
+ * @default 22
+ * 
+ * @param enemyHPColor2
+ * @type number
+ * @min 0
+ * @desc The color2 (color No. of img/system/Window.png) of HP gauges of enemies.
+ * @default 23
+ * 
+ * @help
+ * copyright 2018 エビ. all rights reserved.
+ * Released under the MIT license.
+ * ============================================================================
+ * Overview
+ * ============================================================================
+ * 
+ * A plugin to display HP on a map during SRPG combat.
+ * 
+ * 
+ * ============================================================================
+ * Version History
+ * ============================================================================
+ * 
+ * Version 1.01
+ *   Users can now change the colors of HP gauges of actors and enemies.
+ * 
+ * Version 1.00
+ *   Released
+ * 
+ * ============================================================================
+ * EULA
+ * ============================================================================
+ * 
+ * ・It is released under MIT Lincense. That is;
+ * ・No credits required.
+ * ・Can be used commercially.
+ * ・Can be modified. (However, do not delete the license texts from the source code.)
+ * ・Can be reposted.
+ * ・Can be used for NSFW games.
+ * 
+ */
+
+/*:ja
+ * @target MZ
  * @plugindesc v1.01 SRPG戦闘中、マップでもHPが確認できるようになるプラグイン(おひさまクラフトによる改変あり)。
  * @author ヱビ
  * 
