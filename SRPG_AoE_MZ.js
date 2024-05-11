@@ -8,7 +8,7 @@
 /*:
  * @target MZ
  * @plugindesc SRPG area-of-effect skills, edited by OhisamaCraft.
- * @author Dr. Q + アンチョビ
+ * @author Dr. Q + アンチョビ, Boomy, Shoukang
  * 
  * @param AoE Color
  * @desc CSS Color for AoE squares
@@ -22,13 +22,31 @@
  * @on Show
  * @off Hide
  * @default false
+ * 
+ * @param standard X
+ * @desc The center X position in battle scene, default Graphics.width / 2
+ * @default Graphics.width / 2
+ * 
+ * @param standard Y
+ * @desc The center Y position in battle scene, default Graphics.height / 2
+ * @default Graphics.height / 2
+ * 
+ * @param x range
+ * @desc x direction battler placement range in battle scene, default Graphics.width - 360
+ * @default Graphics.width - 360
  *
- * @param Refocus Camera
- * @desc Move the camera to each target as it's hit
+ * @param y range
+ * @desc y direction battler placement range in battle scene, default Graphics.height / 3.5
+ * @default Graphics.height / 3.5
+ * 
+ * @param tilt
+ * @desc parameter that tilt x direction placement to simulate a 3D view, default 0.2
+ * @default 0.2
+ *
+ * @param allow surrounding
+ * @desc if disabled skill user will never be surrounded by targets. See help for detail
  * @type boolean
- * @on Move
- * @off Don't move
- * @default false
+ * @default true
  *
  * @noteParam faceName
  * @noteDir img/faces/
@@ -164,6 +182,17 @@
  *  2   0   2
  *    1   1
  *  2   2   2
+ * 
+ * allActor - all actors within range
+ * <srpgAreaRange:x> must be set to 1 or greater.
+ * 
+ * allEnemy - All enemies within range
+ * <srpgAreaRange:x> must be set to 1 or greater.
+ * 
+ * Note: allActor, allEnemy directly specifies Actor and Enemy (unlike Friend, opponent).
+ * Therefore, it is necessary to create different skills for Actor and Enemy.
+ * Actor attacks Enemy -> skill with allEnemy in the tag
+ * Enemy attacks Actor -> allActor tag
  *
  * Script calls for advanced users:
  *  yourEvent.battlersNear(size, minSize, 'shape', [direction])
@@ -173,8 +202,48 @@
  * Returns a list of actors/enemies/both near the specified event, supporting
  * the same AoE shapes listed above. If you use a directional AoE shape and no
  * direction is specified, it will point where your event is facing
+ * ================================================================================
+ * AoE Animation help
+ * ================================================================================
+ * When an AoE spell is cast and more than 1 target is selected ($gameTemp.areaTargets), 
+ * each target is added to a queue and then the game will execute each battle individually 1 on 1
+ * This script will collect all targets and add them into one battle for a 1 vs many scenario
+ * Works best with animations set to SCREEN though animations that target individuals still work 
+ * (they just happened sequentially on the same battle field)
+ *
+ * AoE rules in this plugin:
+ * 1. If an enemy cast AoE to actors, the battle exp will be shared by all actors in battle equally.
+ * 2. If you use AGI attack, AoE skill will hit every target first, then targets will do counter attacks.
+ *
+ * Important Tips:
+ * With this plugin, it's necessary to set skill target to all enemies/friends to make AoEs work properly.
+ * If you allow surrounding and you use dynamic motion, actor sprite priority may become weird 
+ * while casting skills, to avoid this, set the plugin parameter 'usePriority' in dynamic motion to false.
+ * Once you find anything weird, try to turn of this plugin and see if it happens again. 
+ * This will help us identify which plugin causes the error.
+ * ==================================================================================================
+ * Positions battlers in Battle scene:
+ * All battlers will be placed based on their relative positions. For example in this map position:
+ * [ . T .]    Battle scene will look like: [ . T .]                     [ . T .]
+ * [ T C T]    ========================>    [ T . U] when user is actor, [ U . T] when user is enemy.
+ * [ . U .]                                 [ . T .]                     [ . T .]
+ *
+ * U: skill user, T: target, C; AoE center
+ *
+ * The battle scene will look like:
+ * [ C T .]    Battle scene will look like: [ T . .]                     [ . . T]
+ * [ T U .]    ========================>    [ . . U] when user is actor, [ U . .] when user is enemy.
+ * [ . . .]                                 [ T . .]                     [ . . T]
+ *
+ * The placement will automatically adjust battlers' distance to make them reasonable.(within the defined x and y range)
+ * ===================================================================================================
+ * Credits to: Dopan, Dr. Q, Traverse, SoulPour777
+ * ===================================================================================================
  * 
+ * ================================================================================
  * Note / Modification by Ohisama Craft
+ * ================================================================================
+ * -Add SRPG_AoEAnimation.js
  * -Corrected cost consumption (changed from gameTemp to gameBattler to counter action)
  * -Added allActor / allEnemy to AoE shape (targets all actors / enemies within range)
  * -Supports Game_Player.prototype.triggerAction for SRPGgearMV
@@ -186,7 +255,7 @@
 /*:ja
  * @target MZ
  * @plugindesc SRPG戦闘で範囲攻撃（スキル）を実装します(SRPG_gearMV用)
- * @author Dr. Q + アンチョビ, おひさまクラフト
+ * @author Dr. Q + アンチョビ, Boomy, Shoukang, おひさまクラフト
  * 
  * @param AoE Color
  * @desc 範囲表示のための CSS Color を設定します
@@ -201,12 +270,30 @@
  * @off Hide
  * @default false
  *
- * @param Refocus Camera
- * @desc 効果が発動するとき、個々の対象が画面の中央になるように画面移動するか
+ * @param standard X
+ * @desc 戦闘シーンで中心となるX座標　デフォルト Graphics.width / 2
+ * @default Graphics.width / 2
+ * 
+ * @param standard Y
+ * @desc 戦闘シーンで中心となるY座標　デフォルト Graphics.height / 2
+ * @default Graphics.height / 2
+ * 
+ * @param x range
+ * @desc 戦闘シーンでバトラーを配置するX方向の範囲　デフォルト Graphics.width - 360
+ * @default Graphics.width - 360
+ *
+ * @param y range
+ * @desc 戦闘シーンでバトラーを配置するY方向の範囲　デフォルト Graphics.height / 3.5
+ * @default Graphics.height / 3.5
+ * 
+ * @param tilt
+ * @desc 戦闘シーンで3D表示らしい配置にするためのX方向の傾き値　デフォルト 0.2
+ * @default 0.2
+ *
+ * @param allow surrounding
+ * @desc スキルの使用者がターゲットに囲まれることを許可するか。詳細はヘルプ参照。
  * @type boolean
- * @on Move
- * @off Don't move
- * @default false
+ * @default true
  * 
  * @noteParam faceName
  * @noteDir img/faces/
@@ -349,6 +436,10 @@
  * allEnemy - 射程範囲内のすべてのエネミー
  * <srpgAreaRange:x> は 1 以上に設定してください。
  * 
+ * 注：allActor, allEnemyは、アクターとエネミーを直接指定します（Friend, opponentとは違います）。
+ * 　　そのため、アクターとエネミーで異なるスキルを制作する必要があります。
+ * 　　・アクターがエネミーを攻撃する→allEnemyをタグに記述したスキル
+ * 　　・エネミーがアクターを攻撃する→allActorをタグに記述したスキル
  *
  * 慣れた人向け　スクリプトで使用できるコマンド:
  *  yourEvent.battlersNear(size, minSize, 'shape', [direction])
@@ -358,10 +449,52 @@
  * 指定したイベントを中心としたAoEの範囲内にいるアクター/エネミー/両方のリストを返します。
  * 指向性のあるAoEを使用し、directionが指定されていない場合、イベントの向きをdirectionとします。
  * 
+ * ================================================================================
+ * SRPG_AoE Animationのヘルプ
+ * ================================================================================
+ * AoEによって効果範囲のあるスキルが使用され、複数のターゲットが存在する場合($gameTemp.areaTargets)、
+ * それぞれのターゲットはキューに追加され、1対1の戦闘シーンとして順次実行されます。
+ * AoE Animationは、全てのターゲットを1つの戦闘シーンにまとめ、1対多数の戦闘シーンを実現します。
+ * 表示位置が『画面』に設定されたアニメーションに適していますが、
+ * 個別に表示されるアニメーションでも問題なく使用することが出来ます（順次表示されます）。
+ *
+ * このプラグイン内でのAoEルール:
+ * 1. エネミーが複数のアクターに行動を行った場合、経験値は戦闘に参加したアクター全員で均等に分配します。
+ * 2. 敏捷に応じて行動する場合でも、AoEスキルは始めにターゲット全体に使用され、次いでターゲットが応戦します。
+ *
+ * 重要なTips:
+ * このプラグインでは、AoEを正しく動作させるため、スキルの範囲をすべての敵/味方に設定する必要があります。
+ * 周囲を囲むことを許可してdynamic motion.jsを使用すると、アクターのスプライトの優先順位がおかしくなることがあります。
+ * これを避けるには、dynamic motionのプラグインパラメータ'usePriority'をfalseに設定します。
+ * 不具合が生じた場合は、いったんこのプラグインをOFFにして問題が再現されるか確認してください。
+ * このような方法は、どのプラグインがエラーの原因か推測するのに役立ちます。
+ * ==================================================================================================
+ * 戦闘シーンでのバトラーの配置:
+ * 全てのバトラーは相対的な位置に基づいて配置されます。
+ * 例:
+ * [ . T .]    戦闘シーンでは              : [ . T .]                     [ . T .]
+ * [ T C T]    ========================>    [ T . U] ユーザーがアクター , [ U . T] ユーザーがエネミー
+ * [ . U .]                                 [ . T .]                     [ . T .]
+ *
+ * U: skill user, T: target, C; AoE center
+ *
+ * 例２:
+ * [ C T .]    戦闘シーンでは              : [ T . .]                     [ . . T]
+ * [ T U .]    ========================>    [ . . U] ユーザーがアクター , [ U . .] ユーザーがエネミー
+ * [ . . .]                                 [ T . .]                     [ . . T]
+ *
+ * 配置の際は自動的にバトラーとの距離を調整します。
+ * ===================================================================================================
+ * Credits to: Dopan, Dr. Q, Traverse, SoulPour777
+ * ===================================================================================================
+ * 
+ * ================================================================================
  * 注 / おひさまクラフトによる改変内容 ('modified by OhisamaCraft'で検索)
+ * ================================================================================
+ * ・SRPG_AoEAnimation.jsを統合
  * ・コスト消費の修正（応戦に対応するためgameTempからgameBattlerに変更）
  * ・<srpgAreaType:y> (AoE shape) に allActor, allEnemy を追加（射程範囲内のすべてのactor/enemyを対象とする）
- * ・Game_Player.prototype.triggerActionをSRPGgearMZに対応
+ * ・Game_Player.prototype.triggerActionをSRPGgearMVに対応
  * ・ヘルプの和訳
  * 
  */
@@ -384,7 +517,12 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
 	var parameters = PluginManager.parameters('SRPG_AoE_MZ');
 	var _oneSquare = !!eval(parameters['Show One Square AoE']);
 	var _areaColor = parameters['AoE Color'];
-	var _refocus = !!eval(parameters['Refocus Camera']);
+	var _standardY = parameters['standard Y'] || 'Graphics.height / 2';
+    var _standardX = parameters['standard X'] || 'Graphics.width / 2';
+    var _xRange = parameters['x range'] || 'Graphics.width - 360';
+    var _yRange = parameters['y range'] || 'Graphics.height / 3.5';
+    var _tilt = Number(parameters['tilt'] || 0.2);
+    var _surround = !!eval(parameters['allow surrounding']);
 
 	var coreParameters = PluginManager.parameters('SRPG_core_MZ');
 	var _srpgPredictionWindowMode = Number(coreParameters['srpgPredictionWindowMode'] || 1);
@@ -394,8 +532,9 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
 //====================================================================
 
 	// modified by OhisamaCraft
-	Game_Temp.prototype.isFirstAction = function(battler) {
-		return !!(battler.shouldPayCost());
+	Game_Temp.prototype.isFirstAction = function(action) {
+		//return !!(battler.shouldPayCost());
+		return !action.isHideAnimation();
 	};
 	Game_Temp.prototype.isLastAction = function() {
 		return !!(this.areaTargets().length < 1);
@@ -487,7 +626,6 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
 		_Game_Temp_initialize.call(this);
 		this._activeAoE = null;
 		this._areaTargets = [];
-		//this._shouldPaySkillCost = true;
 	};
 
 	// easy access to the origin of the AoE
@@ -543,19 +681,13 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
 	// when repeating actions, the cost/item is only paid once
 	// modified by OhisamaCraft
 	/*
-	Game_Temp.prototype.setShouldPayCost = function(flag) {
-		this._shouldPaySkillCost = flag;
-	};
-	Game_Temp.prototype.shouldPayCost = function() {
-		return this._shouldPaySkillCost;
-	};
-	*/
 	Game_Battler.prototype.setShouldPayCost = function(flag) {
 		this._shouldPaySkillCost = flag;
 	};
 	Game_Battler.prototype.shouldPayCost = function() {
 		return this._shouldPaySkillCost;
 	};
+
 	var _useItem = Game_Battler.prototype.useItem;
 	Game_Battler.prototype.useItem = function(skill) {
 		if (!$gameSystem.isSRPGMode() || this.shouldPayCost()) {
@@ -568,6 +700,7 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
 			_actionTimesAdd.call(this, num);
 		}
 	};
+	*/
 
 //====================================================================
 // Check what's in an area
@@ -736,9 +869,9 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
 	};
 
 	// show the AoE when you start targeting
-	var _startActorTargetting = Scene_Map.prototype.startActorTargetting;
+	var _AoE_startActorTargetting = Scene_Map.prototype.startActorTargetting;
 	Scene_Map.prototype.startActorTargetting = function() {
-		_startActorTargetting.call(this);
+		_AoE_startActorTargetting.call(this);
 		var x = $gamePlayer.posX();
 		var y = $gamePlayer.posY();
 		if ($gameSystem.positionInRange(x, y)) {
@@ -857,14 +990,13 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
 	};
 
 	// Apply AoEs for auto units as well
-	var _srpgInvokeAutoUnitAction = Scene_Map.prototype.srpgInvokeAutoUnitAction;
-	Scene_Map.prototype.srpgInvokeAutoUnitAction = function() {
+	Scene_Map.prototype.setupAoEforAutoUnits = function() {
 		// set up the AoE if it hasn't already been prepared
 		if (!$gameTemp._activeAoE) {
-			var mainTarget = $gameTemp.targetEvent();
+			let mainTarget = $gameTemp.targetEvent();
 			if (mainTarget && $gameSystem.positionInRange(mainTarget.posX(), mainTarget.posY())) {
-				var userArray = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId());
-				var skill = userArray[1].currentAction();
+				let userArray = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId());
+				let skill = userArray[1].currentAction();
 				if (skill.area() > 0) {
 					$gameTemp.showArea(mainTarget.posX(), mainTarget.posY());
 					$gameTemp.selectArea(userArray[1], skill);
@@ -872,8 +1004,14 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
 					$gameTemp.setTargetEvent($gameTemp.areaTargets().shift().event);
 				}
 			}
+		} else {
+			// AI controlで事前にAoEが設定されている場合に対応する
+			let userArray = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId());
+			let user = userArray[1];
+			let skill = userArray[1].currentAction();
+			$gameTemp.selectArea(user, skill);
+			$gameTemp.setTargetEvent($gameTemp.areaTargets().shift().event);
 		}
-		_srpgInvokeAutoUnitAction.call(this);
 	};
 
 	// Find all the targets within the current AoE
@@ -936,6 +1074,7 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
 		return true;
 	};
 
+	/*
 	// work through the queue of actions
 	// modified by OhisamaCraft
 	var _srpgAfterAction = Scene_Map.prototype.srpgAfterAction;
@@ -945,8 +1084,8 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
 		if (actionArray[1].canMove() && $gameTemp.areaTargets().length > 0) {
 			this.srpgBattlerDeadAfterBattle();
 			var nextaction = $gameTemp.areaTargets().shift();
-			actionArray[1].srpgMakeNewActions();
-			actionArray[1].action(0).setItemObject(nextaction.item);
+			user.srpgMakeNewActions();
+			user.action(0).setItemObject(nextaction.item);
 			var targetArray = $gameSystem.EventToUnit(nextaction.event.eventId());
 			$gameTemp.setTargetEvent(nextaction.event);
 			$gameTemp.setSrpgDistance($gameSystem.unitDistance($gameTemp.activeEvent(), nextaction.event));//shoukang refresh distance
@@ -954,9 +1093,9 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
 				$gameTemp.setAutoMoveDestinationValid(true);
 				$gameTemp.setAutoMoveDestination($gameTemp.targetEvent().posX(), $gameTemp.targetEvent().posY());
 			}
-			actionArray[1].setShouldPayCost(false);
+			user.setShouldPayCost(false);
 			$gameSystem.setSubBattlePhase('invoke_action');
-			this.srpgBattleStart(actionArray, targetArray);
+			this.srpgBattleStart(userArray, targetArray);
 		} else {
 			$gameTemp.clearArea();
 			$gameTemp.clearAreaTargets();
@@ -973,6 +1112,7 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
             }
         });
 	};
+	*/
 
 	// override this to allow the AI to use fancy AoEs
 	Game_System.prototype.srpgAIUnderstandsAoE = false;
@@ -1006,6 +1146,17 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
 		}
 		return _srpgBattle_isEnabled.call(this, item);
 	};
+
+	// fix bug for not clearing area after searching targets.
+    var _Scene_Map_prototype_srpgAICommand = Scene_Map.prototype.srpgAICommand
+    Scene_Map.prototype.srpgAICommand = function() {
+        var result = _Scene_Map_prototype_srpgAICommand.call(this);
+        if (!result){
+            $gameTemp.clearAreaTargets();
+            $gameTemp.clearArea();
+        }
+        return result;
+    };
 
 //====================================================================
 // Sprite_SrpgAoE
@@ -1119,19 +1270,219 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
 	var _Spriteset_Map_update = Spriteset_Map.prototype.update;
 	Spriteset_Map.prototype.update = function() {
 		_Spriteset_Map_update.call(this);
-		if ($gameSystem.isSRPGMode()) {
+		if ($gameSystem.isSRPGMode() || this._srpgAoE.isActive()) {
 			this.updateSrpgAoE();
 		}
 	};
 
 	// refresh the AoE sprite
 	Spriteset_Map.prototype.updateSrpgAoE = function() {
-		var aoe = $gameTemp._activeAoE;
+		const aoe = $gameTemp._activeAoE;
 		if (aoe) {
 			this._srpgAoE.setAoE(aoe.x, aoe.y, aoe.size, aoe.minSize, aoe.shape, aoe.dir);
 		} else {
 			this._srpgAoE.clearArea();
 		}
 	};
+
+//============================================================================================
+//Battler position in AoE(when there are areaTargets) scene battle 
+//============================================================================================
+    // remove actor sprite limit
+    var _Spriteset_Battle_createActors = Spriteset_Battle.prototype.createActors
+    Spriteset_Battle.prototype.createActors = function() {
+        if ($gameSystem.isSRPGMode() && $gameTemp.areaTargets().length > 0){
+            this._actorSprites = [];
+            for (var i = 0; i < $gameParty.SrpgBattleActors().length; i++) {
+                this._actorSprites[i] = new Sprite_Actor();
+                this._battleField.addChild(this._actorSprites[i]);
+            }          
+        } else{
+            _Spriteset_Battle_createActors.call(this);
+        }
+    };
+
+    //sort to get priority right
+    var _Spriteset_Battle_createLowerLayer = Spriteset_Battle.prototype.createLowerLayer;
+    Spriteset_Battle.prototype.createLowerLayer = function() {
+        _Spriteset_Battle_createLowerLayer.call(this);
+        if ($gameSystem.isSRPGMode() && $gameTemp.areaTargets().length > 0){
+            this._battleField.removeChild(this._back1Sprite);
+            this._battleField.removeChild(this._back2Sprite);
+            this._battleField.children.sort(this.compareEnemySprite.bind(this));
+            this._battleField.addChildAt(this._back2Sprite, 0);
+            this._battleField.addChildAt(this._back1Sprite, 0);
+        }
+    };
+
+    var _SRPG_Sprite_Actor_setActorHome = Sprite_Actor.prototype.setActorHome;
+    Sprite_Actor.prototype.setActorHome = function (index) {
+        if ($gameSystem.isSRPGMode() == true && !$gameSystem.useMapBattle() && $gameTemp.areaTargets().length > 0) {
+            var param = $gameTemp._aoePositionParameters;
+            var battler = this._battler;
+            this.setHome(eval(_standardX) + (battler.aoeSceneX() - param.midX) * param.amplifyX,
+                         eval(_standardY) + (battler.aoeSceneY() - param.midY) * param.amplifyY);
+            this.moveToStartPosition();
+        } else {
+            _SRPG_Sprite_Actor_setActorHome.call(this, index);
+        }
+    };
+
+    //Set enemy positions
+    const _SRPGAoE_Game_Troop_setup = Game_Troop.prototype.setup;
+    Game_Troop.prototype.setup = function(troopId) {
+        if ($gameSystem.isSRPGMode() == true && !$gameSystem.useMapBattle() && $gameTemp.areaTargets().length > 0) {
+            this.clear();
+            this._troopId = troopId;
+            this._enemies = [];
+            var param = $gameTemp._aoePositionParameters;
+            for (var i = 0; i < this.SrpgBattleEnemys().length; i++) {
+                var battler = this.SrpgBattleEnemys()[i];
+                battler.setScreenXy(eval(_standardX) + (battler.aoeSceneX() - param.midX) * param.amplifyX,
+                                    eval(_standardY) + (battler.aoeSceneY() - param.midY) * param.amplifyY);
+                this._enemies.push(battler);
+            }
+            //this.makeUniqueNames();
+        } else {
+            _SRPGAoE_Game_Troop_setup.call(this, troopId);
+        }
+    };
+
+// shoukang: complicated vector calculation to determine the battler placement parameters and relative position.
+	Game_System.prototype.setBattlerPosition = function(){
+        var activeEvent = $gameTemp.activeEvent();
+        var allEvents = [activeEvent, $gameTemp.targetEvent()].concat($gameTemp.getAreaEvents());
+        var vector =  this.createSrpgAoEVector();
+        var vectorX = vector[0];
+        var vectorY = vector[1];
+        var vectorLen = Math.sqrt(vectorX * vectorX + vectorY * vectorY);
+        var minX = 0;
+        var maxX = 0.5;
+        var minY = -1.25;
+        var maxY = 1.25;
+        var targetMinX = 0.5;
+
+        for (var i = 0; i < allEvents.length; i++){
+            var battler = $gameSystem.EventToUnit(allEvents[i].eventId())[1];
+            var posX = allEvents[i].posX() - activeEvent.posX();
+            var posY = allEvents[i].posY() - activeEvent.posY();
+            var projectionY = (vectorY * posX - vectorX * posY) / vectorLen;
+            var projectionX = _tilt * projectionY + (vectorX * posX + vectorY * posY) / vectorLen; //0.2 * sin helps to make a better veiw.
+            battler.setAoEScenePosition(projectionX, projectionY);
+            if (i > 0) targetMinX = Math.min(projectionX, targetMinX);
+            minX = Math.min(projectionX, minX);
+            minY = Math.min(projectionY, minY);
+            maxX = Math.max(projectionX, maxX);
+            maxY = Math.max(projectionY, maxY);
+        }
+
+        if (!_surround && targetMinX < 0.5){
+            minX -= Math.max((maxX - targetMinX) / 2, 0.5);
+            $gameSystem.EventToUnit(activeEvent.eventId())[1].setAoEScenePosition(minX, 0);
+        }
+        var direction = $gameSystem.EventToUnit(activeEvent.eventId())[0] === 'actor' ? -1 : 1;
+        var amplifyX = direction * eval(_xRange) / Math.max((maxX - minX), 2);
+        var amplifyY = eval(_yRange) / (maxY - minY);
+        $gameTemp.setAoEPositionParameters((minX + maxX) / 2, (minY + maxY) / 2, amplifyX, amplifyY);
+    }
+
+    Game_System.prototype.createSrpgAoEVector = function(){
+        var activeEvent = $gameTemp.activeEvent();
+        var vectorX = $gameTemp.areaX() - activeEvent.posX();
+        var vectorY = $gameTemp.areaY() - activeEvent.posY();
+
+        // if aoe center overlap with active event, use active event direction as vector.
+        if (Math.abs(vectorX) + Math.abs(vectorY) === 0){
+            var dir = activeEvent.direction();
+            vectorX = $gameMap.roundXWithDirection(0, dir);
+            vectorY = $gameMap.roundYWithDirection(0, dir);
+        }
+        return [vectorX, vectorY]
+    }
+
+    Game_Battler.prototype.setAoEScenePosition = function(x, y){
+        this._aoeSceneX = x;
+        this._aoeSceneY = y;
+    }
+
+    Game_Battler.prototype.aoeSceneX = function(){
+        return this._aoeSceneX;
+    }
+
+    Game_Battler.prototype.aoeSceneY = function(){
+        return this._aoeSceneY;
+    }
+
+    Game_Temp.prototype.setAoEPositionParameters = function(midX, midY, amplifyX, amplifyY){
+        this._aoePositionParameters = {
+            midX : midX,
+            midY : midY,
+            amplifyX : amplifyX,
+            amplifyY : amplifyY,
+        }
+    }
+
+// ==========================================================================
+// repeated AoE action that doesn't show animation and doesn't cost tp, mp
+// ==========================================================================
+    Game_Action.prototype.setHideAnimation = function(val){
+        this._hideAnimation = val;
+    }
+    // only work with my bugfixed srpg_DynamicAction
+	// Also used for log window display in map battles (Ohisama Craft)
+    Game_Action.prototype.isHideAnimation = function(){
+        return this._hideAnimation;
+    }
+
+    Game_Action.prototype.setEditedItem = function(item){
+        this._editedItem = item;
+    }    
+
+    // set up Action that and item that has no animation and no cost for repetation
+    Game_Action.prototype.createAoERepeatedAction = function(){
+        var hiddenAction = new Game_Action(this.subject());
+        var noCostItem = {
+            ...this.item()
+        }
+        noCostItem.mpCost = 0;
+        noCostItem.tpCost = 0;
+        noCostItem.srpgDataClass = this._item._dataClass;
+        hiddenAction.setItemObject(this.item());
+        hiddenAction.setEditedItem(noCostItem);
+        hiddenAction.setHideAnimation(true);
+        return hiddenAction;
+    }    
+
+    var _Game_Action_item = Game_Action.prototype.item;
+    Game_Action.prototype.item = function() {
+        if (this._editedItem) return this._editedItem;
+        return _Game_Action_item.call(this);
+    };
+
+    Game_Action.prototype.canAgiAttack = function(action){
+        return this.isForOpponent() && !this.item().meta.doubleAction;
+    }
+
+//============================================================================================
+//A hack way to get AoE counter attack distance correct.
+//============================================================================================
+/*
+    Game_Battler.prototype.setAoEDistance = function(val){
+        this._AoEDistance = val;
+    }
+
+    Game_Battler.prototype.AoEDistance = function(){
+        return this._AoEDistance;
+    }
+
+    Game_Battler.prototype.clearAoEDistance = function(){
+        this._AoEDistance = undefined;
+    }
+*/
+    //let our faked skill item considered as skill
+    var _DataManager_isSkill = DataManager.isSkill;
+    DataManager.isSkill = function(item) {
+        return _DataManager_isSkill.call(this, item) || (item && item.srpgDataClass === 'skill');
+    };
 
 })();
