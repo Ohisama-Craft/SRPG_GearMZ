@@ -158,6 +158,7 @@ Sprite_SrpgMovePath.prototype.constructor = Sprite_SrpgMovePath;
 	Game_Temp.prototype.showRoute = function(destX, destY) {
 		this._activeRoute = [];
 		if (destX == undefined || destY == undefined) return;
+		if (destX < 0 || destX >= $gameMap.width() || destY < 0 || destY >= $gameMap.height()) return;
 		var moveTable = $gameTemp.MoveTable(destX, destY);
 		var list = $gameTemp.moveList();
 		if (!moveTable || !list || !list[0]) return;
