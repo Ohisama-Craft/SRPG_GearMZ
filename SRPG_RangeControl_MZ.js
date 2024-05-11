@@ -1130,20 +1130,6 @@
 		return Math.max(range, minRange);
 	};
 
-	// weapon skill can be set from actor or skill
-	Game_Actor.prototype.attackSkillId = function() {
-		var weapon = this.weapons()[0];
-		if (weapon && weapon.meta.srpgWeaponSkill) {
-			return Number(weapon.meta.srpgWeaponSkill);
-		} else if (this.currentClass().meta.srpgWeaponSkill) {
-			return Number(this.currentClass().meta.srpgWeaponSkill);
-		} else if (this.actor().meta.srpgWeaponSkill) {
-			return Number(this.actor().meta.srpgWeaponSkill);
-		} else {
-			return Game_BattlerBase.prototype.attackSkillId.call(this);
-		}
-	};
-
 //====================================================================
 // update where move ranges can come from
 //====================================================================
