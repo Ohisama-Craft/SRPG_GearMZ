@@ -14,6 +14,13 @@
  * @desc Don't show the window if you don't get anything
  * @type boolean
  * @default true
+ * 
+ * @param srpgBattleResultWindowCount
+ * @parent BattleExtensionParam
+ * @desc The time to wait for the reward window (-1 waits until a key is entered, it will not close automatically).
+ * @type number
+ * @min -1
+ * @default 90
  *
  * @param Hide Self Target
  * @desc Hide the target window when self-targeting
@@ -39,10 +46,52 @@
  *
  */
 
+/*:ja
+ * @target MZ
+ * @plugindesc SRPGでのウィンドウを改善します（おひさまクラフトによる改変）。
+ * @author Dr. Q
+ *
+ * @param Hide No Rewards
+ * @desc 何も報酬を入手しなかった場合、ウィンドウを表示しません。
+ * @type boolean
+ * @default true
+ * 
+ * @param srpgBattleResultWindowCount
+ * @parent BattleExtensionParam
+ * @desc リザルトウィンドウを閉じるまでの待ち時間 (-1 にするとキー入力があるまで閉じません).
+ * @type number
+ * @min -1
+ * @default 90
+ *
+ * @param Hide Self Target
+ * @desc 自分を対象にするとき、対象選択ウィンドウを表示しません。
+ * @type boolean
+ * @default false
+ *
+ * @help
+ * copyright 2020 SRPG Team. all rights reserved.
+ * Released under the MIT license.
+ * ============================================================================
+ * ウィンドウに関する細かな挙動を改善します。
+ * 
+ * オプション:
+ * - Hide No Rewards: 経験値、お金、アイテムを入手しなかった戦闘では、
+ *   報酬獲得ウィンドウを表示しません。
+ *
+ * - Hide Self Target: 使用者自身を対象にするスキル使用時、ステータス
+ *   ウィンドウが一つのみ表示されるようになります。
+ *
+ * 自動適用:
+ * - キャンセル/メニューボタンでもステータスウィンドウを閉じることが可能になります。
+ * - メニューにて使用できないスキルが、適切に無効化されます。
+ *
+ */
+
 (function(){
 	// parameters
 	var parameters = PluginManager.parameters('SRPG_UX_Windows_MZ');
 	var _hideNoReward = !!eval(parameters['Hide No Rewards']);
+	var _srpgBattleResultWindowCount = Number(parameters['srpgBattleResultWindowCount'] || 90);
 	var _hideSelfTarget = !!eval(parameters['Hide Self Target']);
 
 	var coreParameters = PluginManager.parameters('SRPG_core_MZ');
@@ -69,13 +118,38 @@
 			se.volume = 90;
 			AudioManager.playSe(se);
 			this._srpgBattleResultWindow.open();
-			this._srpgBattleResultWindowCount = 90;
+			this._srpgBattleResultWindowCount = _srpgBattleResultWindowCount;
 			this.gainRewards();
 		}
 		// otherwise, skip right to the end
 		else {
 			this.endBattle(3);
 		}
+	};
+
+	Scene_Map.prototype.processSrpgVictory = function() {
+		var members = $gameParty.aliveMembers();
+        if (members.length > 0) {
+            this.makeRewards();
+            if (this.hasRewards()) {
+                this._srpgBattleResultWindow.setBattler(members[0]);
+                this._srpgBattleResultWindow.setRewards(this._rewards);
+                var se = {};
+                se.name = _rewardSe;
+                se.pan = 0;
+                se.pitch = 100;
+                se.volume = 90;
+                AudioManager.playSe(se);
+				this._logWindow.clear();
+        		this._logWindow.hide();
+                this._srpgBattleResultWindow.open();
+                this._srpgBattleResultWindowCount = _srpgBattleResultWindowCount;
+                this.gainRewards();
+                //this.initRewards();
+                return true;
+            }
+        }
+        return false;
 	};
 
 	// don't show the xp bar if no xp was gained
