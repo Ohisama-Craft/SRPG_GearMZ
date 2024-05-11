@@ -123,6 +123,117 @@
  *
  */
 
+/*:ja
+ * @target MZ
+ * @plugindesc SRPG用のカーソル、移動および選択を改善します（おひさまクラフトによる改変）。
+ * @author Dr. Q
+ *
+ * @param Cursor-Style Movement
+ * @desc カーソル移動をカーソル形式にします。
+ * @type boolean
+ * @default true
+ * 
+ * @param Cursor Delay
+ * @desc カーソル移動のフレームディレイ
+ * @parent Cursor-Style Movement
+ * @type number
+ * @default 8
+ *
+ * @param Cursor Speed
+ * @desc カーソル移動速度。イベントの「移動速度」と同じ形式です。
+ * @parent Cursor-Style Movement
+ * @type number
+ * @default 6
+ *
+ *
+ * @param Animate Cursor
+ * @desc カーソルが自動的にアニメーションするようになります。
+ * @type boolean
+ * @default true
+ *
+ * @param Animate Delay
+ * @desc カーソルフレーム間のフレームディレイ
+ * @parent Animate Cursor
+ * @type number
+ * @default 15
+ *
+ *
+ * @param Start On Next Actor
+ * @desc 行動完了後、自動的に次のアクターまでカーソルが移動します。
+ * @type boolean
+ * @default true
+ *
+ *
+ * @param Switch Actor While Moving
+ * @desc 移動している間、そのアクターを動かす代わりに別のアクターをカーソル選択します。
+ * @type boolean
+ * @default true
+ *
+ *
+ * @param Quick Attack
+ * @desc 移動している間、攻撃対象にするために敵をカーソル選択します。
+ * Requires SRPG_RangeControl.js
+ * @type boolean
+ * @default true
+ *
+ *
+ * @param Quick Target Switch
+ * @desc ターゲット切り替えにPage Up / Page Downを使用します。
+ * @type boolean
+ * @default true
+ * 
+ * @param Quick Switch From Preview
+ * @desc 戦闘予測画面にてターゲット切り替えを使用します。AoEやマップのマスを対象にするスキルには適用されません。
+ * @parent Quick Target Switch
+ * @type boolean
+ * @default false
+ *
+ *
+ * @param Auto Target
+ * @desc カーソル初期位置が対象になりうるユニットになります（いれば）。
+ * @type boolean
+ * @default true
+ *
+ * @param Auto Select
+ * @desc 最初の有効な対象を自動的に選択します（Auto Targetが有効である必要があります）。AoEやマップのマスを対象にするスキルには適用されません。
+ * @parent Auto Target
+ * @type select
+ * @option 常にしない
+ * @value 0
+ * @option 自分対象のみする
+ * @value 1
+ * @option 常にする
+ * @value 2
+ * @default 0
+ *
+ *
+ * @help
+ * copyright 2020 SRPG Team. all rights reserved.
+ * Released under the MIT license.
+ * ============================================================================
+ * 戦闘をより早くスムーズにするための改善
+ * 
+ * オプション:
+ *
+ * - Cursor-Style Movement: カーソルのマスからマスへの移動が素早く、
+ *   SE付きになります。Cursor Delayにて移動後の停滞時間を制御できます。
+ *   Cursor Speedは移動速度を決定します。
+ *   これはSRPG_etcModのカーソル形式移動と競合する可能性があります。
+ *
+ * - Animate Cursor: マップ上のカーソルが、移動していなくてもアニメーション
+ *   するようになります。Animate Delayはフレームごとの滞留時間を制御します。
+ *
+ * - Quick Target: アクターフェイズにて、page upやpage downを押下することで
+ *   操作可能ユニットが切り替わるようになります。対象選択時は、射程内の有効な
+ *   対象の切り替えが可能です。
+ *   Auto Quick Targetは最初の有効な選択にカーソルが移動します。
+ *   Auto Quick Actorは行動終了時、次のアクターにカーソルが移動します。
+ *
+ * 自動適用:
+ * - 対象選択や移動をキャンセルすると、カーソルがアクターの位置に戻ります。
+ *
+ */
+
 (function(){
 	// parameters
 	var parameters = PluginManager.parameters('SRPG_UX_Cursor_MZ');
@@ -305,6 +416,8 @@
 	};
 
 	// (utility function) checks if an event is within the current skill's range
+	// SRPG_AoEの定義に統合
+	/*
 	Game_System.prototype.positionInRange = function(x, y) {
 		var range = $gameTemp.rangeList();
 		for (var i = 0; i < range.length; i++) {
@@ -312,6 +425,7 @@
 		}
 		return false;
 	};
+	*/
 
 	// (utility function) checks if an event is a valid target for the current skill
 	Game_System.prototype.eventIsValidTarget = function(event) {
@@ -462,10 +576,12 @@
 	};
 
 	// automatically highlight the first target when you start targeting
-	var _startActorTargetting = Scene_Map.prototype.startActorTargetting;
+	var _UXCursor_startActorTargetting = Scene_Map.prototype.startActorTargetting;
 	Scene_Map.prototype.startActorTargetting = function() {
-		_startActorTargetting.call(this);
-		if (autoTarget) {
+		_UXCursor_startActorTargetting.call(this);
+		const battler = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1];
+		const action = battler.currentAction();
+		if (autoTarget && !action.isForDeadFriend()) {
 			var id = $gameSystem.findSelection("target");
 			if ($gameTemp.canAutoSelect()) {
 				var event = $gameMap.event(id);
