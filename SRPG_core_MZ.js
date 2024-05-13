@@ -8729,11 +8729,11 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
     // アクターコマンドの表示位置を調節する
     Window_ActorCommand.prototype.updatePlacement = function() {
         this.height = this.windowHeight();
-        this.x = Math.max($gameTemp.activeEvent().screenX() - $gameMap.tileWidth() / 2 - this.width, 0);
-        if ($gameTemp.activeEvent().screenY() < Graphics.boxHeight - 160) {
+        this.x = Math.min(Math.max($gameTemp.activeEvent().screenX() - $gameMap.tileWidth() / 2 - this.width, 0), Graphics.width - (this.width*2+48));
+        if ($gameTemp.activeEvent().screenY() < Graphics.height - 160) {
             var eventY = $gameTemp.activeEvent().screenY();
         } else {
-            var eventY = Graphics.boxHeight - 160;
+            var eventY = Graphics.height - 160;
         }
         this.y = Math.max(eventY - this.windowHeight(), 0);
     };
