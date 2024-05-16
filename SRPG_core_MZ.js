@@ -8737,9 +8737,8 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
         } else {
             var eventY = Graphics.height - 160;
         }
-        this.y = Math.max(eventY - this.windowHeight(), 0);
+        this.y = Math.max(eventY - this.windowHeight() - offsetY, 0 - offsetY);
     };
-
 //====================================================================
 // ●Window_SrpgBattle
 //====================================================================
