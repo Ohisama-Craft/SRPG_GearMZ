@@ -8729,7 +8729,9 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
     // アクターコマンドの表示位置を調節する
     Window_ActorCommand.prototype.updatePlacement = function() {
         this.height = this.windowHeight();
-        this.x = Math.min(Math.max($gameTemp.activeEvent().screenX() - $gameMap.tileWidth() / 2 - this.width, 0), Graphics.width - (this.width*2+48));
+        var offsetX = (Graphics.width - Graphics.boxWidth) / 2;
+        var offsetY = (Graphics.height - Graphics.boxHeight) / 2;
+        this.x = Math.max($gameTemp.activeEvent().screenX() - $gameMap.tileWidth() / 2 - this.width - offsetX, 0 - offsetX);
         if ($gameTemp.activeEvent().screenY() < Graphics.height - 160) {
             var eventY = $gameTemp.activeEvent().screenY();
         } else {
