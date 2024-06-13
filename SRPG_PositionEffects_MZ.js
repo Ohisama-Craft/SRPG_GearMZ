@@ -273,21 +273,37 @@
 //====================================================================
 
 	// check if a position is within range and unoccupied
+	// modified by OhisamaCraft
 	Game_System.prototype.positionIsValidTarget = function(x, y) {
-		var user = this.EventToUnit($gameTemp.activeEvent().eventId())[1];
+		const activeEvent = $gameTemp.activeEvent();
+		if (!activeEvent) return false;
+		const user = this.EventToUnit(activeEvent.eventId())[1];
 		if (!user) return false;
-		var action = user.currentAction();
+		const action = user.currentAction();
 		if (!action) return false;
-		var tag = action.item().meta.srpgTargetTag;
-		if (tag === undefined || tag < 0) tag = user.srpgThroughTag();
-
 		if (!action.item().meta.cellTarget) return false;
-		if ($gameMap.terrainTag(x, y) > 0 && $gameMap.terrainTag(x, y) > tag) return false;
+		let tag = Number(action.item().meta.srpgTargetTag);
+		if (!(tag && tag > 0)) tag = user.srpgThroughTag();
+		if (!activeEvent.chackCellTargetMoveValid(x, y, tag)) return false;
+		//if ($gameMap.terrainTag(x, y) > 0 && $gameMap.terrainTag(x, y) > tag) return false;
 		return ($gameSystem.positionInRange(x, y) && $gameMap.positionIsOpen(x, y));
 	}
 
+	Game_CharacterBase.prototype.chackCellTargetMoveValid = function(x, y, tag) {
+		let flag = false;
+		if ($gameMap.isCellTargetLandOk(x, y)) flag = true;
+		for (let d = 2; d < 10; d += 2) {
+			if (this.srpgMoveCanPass(x, y, d, tag)) flag = true;
+		}
+		return flag;
+	}
+
+	Game_Map.prototype.isCellTargetLandOk = function(x, y) {
+		return this.checkPassage(x, y, 0x0f);
+	};
+
 	// allow selection of empty spaces
-	var _selection_triggerAction = Game_Player.prototype.triggerAction;
+	const _selection_triggerAction = Game_Player.prototype.triggerAction;
 	Game_Player.prototype.triggerAction = function() {
 		if ($gameSystem.isSRPGMode() &&(Input.isTriggered('ok') || TouchInput.isTriggered())) {
 			if ($gameSystem.isSubBattlePhase() === 'actor_target') {
