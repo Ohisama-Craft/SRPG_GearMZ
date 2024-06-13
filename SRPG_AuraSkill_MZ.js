@@ -231,6 +231,24 @@
 		shoukang_Scene_Map_eventBeforeBattle.call(this);
 	};
 
+	// modified by OhisamaCraft
+	// アクターコマンド・キャンセル
+	var shoukang_Scene_Map_selectPreviousActorCommand = Scene_Map.prototype.selectPreviousActorCommand;
+    Scene_Map.prototype.selectPreviousActorCommand = function() {
+		shoukang_Scene_Map_selectPreviousActorCommand.call(this);
+		const event = $gameTemp.activeEvent();
+		const user = $gameSystem.EventToUnit(event.eventId())[1];
+		const userMove = user.srpgMove();
+		$gameTemp.refreshAura(event);
+		const userMove2 = user.srpgMove();
+		if (userMove !== userMove2) {
+			$gameTemp.clearMoveTable();
+			this._spriteset.update();
+			$gameSystem.srpgMakeMoveTable(event);
+		}
+		this._mapSrpgActorCommandStatusWindow.refresh();
+    };
+
 	var shoukang_Game_System_srpgTurnEnd = Game_System.prototype.srpgTurnEnd;
 	Game_System.prototype.srpgTurnEnd = function() {//shoukang turn end
 		$gameMap.events().forEach(function(event) {
@@ -253,10 +271,13 @@
 		}
 	};
 
-	Game_System.prototype.setSrpgActorCommandWindowNeedRefresh = function(battlerArray) {
-		this._SrpgActorCommandWindowRefreshFlag = [true, battlerArray];
+	// アクターコマンドウィンドウのリフレッシュフラグを設定する（同時にユニットの情報を保持する）
+	// modified by OhisamaCraft
+	var shoukang_Game_System_setSrpgActorCommandWindowNeedRefresh = Game_System.prototype.setSrpgActorCommandWindowNeedRefresh;
+    Game_System.prototype.setSrpgActorCommandWindowNeedRefresh = function(battlerArray) {
+		shoukang_Game_System_setSrpgActorCommandWindowNeedRefresh.call(this, battlerArray);
 		$gameTemp.updateAuraList();
-	};
+    };
 
 //Aura functions start here
 
