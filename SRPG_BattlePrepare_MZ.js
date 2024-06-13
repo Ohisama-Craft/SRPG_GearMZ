@@ -707,7 +707,7 @@ const pluginName = "SRPG_BattlePrepare_MZ";
 
 //This part is too complicated, I reconstruct and add my conditions
 // modified by OhisamaCraft
-    var _SRPG_SceneMap_updateCallMenu = Scene_Map.prototype.updateCallMenu;
+    const _SRPG_SceneMap_updateCallMenu = Scene_Map.prototype.updateCallMenu;
     Scene_Map.prototype.updateCallMenu = function() {
         if ($gameSystem.isSRPGMode() == true) {
             if (this.srpgCanNotUpdateCallMenu()) {
@@ -716,10 +716,8 @@ const pluginName = "SRPG_BattlePrepare_MZ";
             }
             if ($gameSystem.isSubBattlePhase() === 'normal') {
                 if (Input.isTriggered('pageup')) {
-                    SoundManager.playCursor();
                     $gameSystem.getNextLActor();
                 } else if (Input.isTriggered('pagedown')) {
-                    SoundManager.playCursor();
                     $gameSystem.getNextRActor();
                 }
             }
