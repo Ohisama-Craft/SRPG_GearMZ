@@ -24,12 +24,12 @@
  * @default false
  * 
  * @param standard X
- * @desc The center X position in battle scene, default Graphics.width / 2
- * @default Graphics.width / 2
+ * @desc The center X position in battle scene, default Graphics.boxWidth / 2
+ * @default Graphics.boxWidth / 2
  * 
  * @param standard Y
- * @desc The center Y position in battle scene, default Graphics.height / 2
- * @default Graphics.height / 2
+ * @desc The center Y position in battle scene, default Graphics.boxHeight / 2
+ * @default Graphics.boxHeight / 2
  * 
  * @param x range
  * @desc x direction battler placement range in battle scene, default Graphics.width - 360
@@ -271,12 +271,12 @@
  * @default false
  *
  * @param standard X
- * @desc 戦闘シーンで中心となるX座標　デフォルト Graphics.width / 2
- * @default Graphics.width / 2
+ * @desc 戦闘シーンで中心となるX座標　デフォルト Graphics.boxWidth / 2
+ * @default Graphics.boxWidth / 2
  * 
  * @param standard Y
- * @desc 戦闘シーンで中心となるY座標　デフォルト Graphics.height / 2
- * @default Graphics.height / 2
+ * @desc 戦闘シーンで中心となるY座標　デフォルト Graphics.boxHeight / 2
+ * @default Graphics.boxHeight / 2
  * 
  * @param x range
  * @desc 戦闘シーンでバトラーを配置するX方向の範囲　デフォルト Graphics.width - 360
@@ -517,8 +517,8 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
 	var parameters = PluginManager.parameters('SRPG_AoE_MZ');
 	var _oneSquare = !!eval(parameters['Show One Square AoE']);
 	var _areaColor = parameters['AoE Color'];
-	var _standardY = parameters['standard Y'] || 'Graphics.height / 2';
-    var _standardX = parameters['standard X'] || 'Graphics.width / 2';
+    var _standardX = parameters['standard X'] || 'Graphics.boxWidth / 2';
+	var _standardY = parameters['standard Y'] || 'Graphics.boxHeight / 2';
     var _xRange = parameters['x range'] || 'Graphics.width - 360';
     var _yRange = parameters['y range'] || 'Graphics.height / 3.5';
     var _tilt = Number(parameters['tilt'] || 0.2);
@@ -1016,6 +1016,7 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
 
 	// Find all the targets within the current AoE
 	Game_Temp.prototype.selectArea = function(user, skill) {
+		if (!user || !skill) return false;
 		this.clearAreaTargets();
 		var friends = (user.isActor()) ? 'actor' : 'enemy';
 		var opponents = (user.isActor()) ? 'enemy' : 'actor';
@@ -1118,6 +1119,8 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
 	Game_System.prototype.srpgAIUnderstandsAoE = false;
 
 	// AoE skills can be used as long as you're in the targeted area
+	// SRPG_coreに統合
+	/*
 	var _canUse = Game_BattlerBase.prototype.canUse;
 	Game_BattlerBase.prototype.canUse = function(item) {
 		if (item && $gameSystem.isSRPGMode() && this._srpgActionTiming !== 1 &&
@@ -1128,7 +1131,6 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
 			Number(item.meta.srpgAreaMinRange) > 0) {
 				return false;
 			}
-
 			if ($gameSystem.isSubBattlePhase() === 'invoke_action' ||
 			$gameSystem.isSubBattlePhase() === 'auto_actor_action' ||
 			$gameSystem.isSubBattlePhase() === 'enemy_action' ||
@@ -1138,6 +1140,7 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
 		}
 		return _canUse.call(this, item);
 	};
+	*/
 
 	var _srpgBattle_isEnabled = Window_SrpgBattle.prototype.isEnabled;
 	Window_SrpgBattle.prototype.isEnabled = function(item) {
@@ -1289,13 +1292,14 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
 //Battler position in AoE(when there are areaTargets) scene battle 
 //============================================================================================
     // remove actor sprite limit
-    var _Spriteset_Battle_createActors = Spriteset_Battle.prototype.createActors
+    const _Spriteset_Battle_createActors = Spriteset_Battle.prototype.createActors
     Spriteset_Battle.prototype.createActors = function() {
         if ($gameSystem.isSRPGMode() && $gameTemp.areaTargets().length > 0){
             this._actorSprites = [];
             for (var i = 0; i < $gameParty.SrpgBattleActors().length; i++) {
-                this._actorSprites[i] = new Sprite_Actor();
-                this._battleField.addChild(this._actorSprites[i]);
+				const sprite = new Sprite_Actor();
+				this._actorSprites.push(sprite);
+				this._battleField.addChild(sprite);
             }          
         } else{
             _Spriteset_Battle_createActors.call(this);
@@ -1303,17 +1307,28 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
     };
 
     //sort to get priority right
-    var _Spriteset_Battle_createLowerLayer = Spriteset_Battle.prototype.createLowerLayer;
+	/*
+    const _Spriteset_Battle_createLowerLayer = Spriteset_Battle.prototype.createLowerLayer;
     Spriteset_Battle.prototype.createLowerLayer = function() {
         _Spriteset_Battle_createLowerLayer.call(this);
         if ($gameSystem.isSRPGMode() && $gameTemp.areaTargets().length > 0){
-            this._battleField.removeChild(this._back1Sprite);
-            this._battleField.removeChild(this._back2Sprite);
             this._battleField.children.sort(this.compareEnemySprite.bind(this));
-            this._battleField.addChildAt(this._back2Sprite, 0);
-            this._battleField.addChildAt(this._back1Sprite, 0);
         }
     };
+	*/
+	const _Spriteset_Battle_updateBattleback = Spriteset_Battle.prototype.updateBattleback;
+	Spriteset_Battle.prototype.updateBattleback = function() {
+		if ($gameSystem.isSRPGMode() && $gameTemp.areaTargets().length > 0){
+            if (!this._battlebackLocated) {
+				this._back1Sprite.adjustPosition();
+				this._back2Sprite.adjustPosition();
+				this._battleField.children.sort(this.compareEnemySprite.bind(this));
+				this._battlebackLocated = true;
+			}
+        } else {
+			_Spriteset_Battle_updateBattleback.call(this);
+		}
+	};
 
     var _SRPG_Sprite_Actor_setActorHome = Sprite_Actor.prototype.setActorHome;
     Sprite_Actor.prototype.setActorHome = function (index) {
