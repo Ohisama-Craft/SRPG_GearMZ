@@ -26,6 +26,23 @@
  * @desc Hide the target window when self-targeting
  * @type boolean
  * @default false
+ * 
+ * @param srpgChangeStatusWindowColor
+ * @desc Change the color of the status window based on Actor or Enemy(true / false)
+ * @type boolean
+ * @default true
+ * 
+ * @param srpgActorStatusWindowColor
+ * @parent srpgChangeStatusWindowColor
+ * @desc Specify the color of the actor's status window([R, G, B]). split ','
+ * @type string
+ * @default -32, -32, 96
+ * 
+ * @param srpgEnemyStatusWindowColor
+ * @parent srpgChangeStatusWindowColor
+ * @desc Specify the color of the enemy's status window([R, G, B]). split ','
+ * @type string
+ * @default 96, -32, -32
  *
  * @help
  * copyright 2020 SRPG Team. all rights reserved.
@@ -39,6 +56,8 @@
  *
  * - Hide Self Target: Only shows one status window for
  *   skills that target the user.
+ * 
+ * - add a feature to color-code the status windows of actors and enemies.
  *
  * Automatic changes:
  * - Status windows can also be closed with cancel/menu
@@ -67,6 +86,23 @@
  * @desc 自分を対象にするとき、対象選択ウィンドウを表示しません。
  * @type boolean
  * @default false
+ * 
+ * @param srpgChangeStatusWindowColor
+ * @desc ステータスウィンドウの色を敵味方で変化させるか。(true / false)
+ * @type boolean
+ * @default true
+ * 
+ * @param srpgActorStatusWindowColor
+ * @parent srpgChangeStatusWindowColor
+ * @desc アクターのステータスウィンドウの色を指定します(R, G, B)。 ',(カンマ)'で区切ります。
+ * @type string
+ * @default -32, -32, 96
+ * 
+ * @param srpgEnemyStatusWindowColor
+ * @parent srpgChangeStatusWindowColor
+ * @desc エネミーのステータスウィンドウの色を指定します(R, G, B)。 ',(カンマ)'で区切ります。
+ * @type string
+ * @default 96, -32, -32
  *
  * @help
  * copyright 2020 SRPG Team. all rights reserved.
@@ -80,6 +116,8 @@
  *
  * - Hide Self Target: 使用者自身を対象にするスキル使用時、ステータス
  *   ウィンドウが一つのみ表示されるようになります。
+ * 
+ * - 敵味方のステータスウィンドウを色分けする機能を追加します。
  *
  * 自動適用:
  * - キャンセル/メニューボタンでもステータスウィンドウを閉じることが可能になります。
@@ -93,6 +131,9 @@
 	var _hideNoReward = !!eval(parameters['Hide No Rewards']);
 	var _srpgBattleResultWindowCount = Number(parameters['srpgBattleResultWindowCount'] || 90);
 	var _hideSelfTarget = !!eval(parameters['Hide Self Target']);
+	var _srpgChangeStatusWindowColor = !!eval(parameters['srpgChangeStatusWindowColor']);
+	var _srpgActorStatusWindowColor = parameters['srpgActorStatusWindowColor'] || "-32, -32, 96";
+	var _srpgEnemyStatusWindowColor = parameters['srpgEnemyStatusWindowColor'] || "96, -32, -32";
 
 	var coreParameters = PluginManager.parameters('SRPG_core_MZ');
 	var _rewardSe = coreParameters['rewardSound'] || 'Item3';
@@ -219,5 +260,65 @@
 	Window_BattleSkill.prototype.isEnabled = function(item) {
 		return this._actor && this._actor.canUse(item);
 	};
+
+//====================================================================
+// change status window color
+//====================================================================
+	// ●Window_Base
+	const srpgUXWindows_Window_Base_initialize = Window_Base.prototype.initialize;
+	Window_Base.prototype.initialize = function(rect) {
+		srpgUXWindows_Window_Base_initialize.call(this, rect);
+		this._srpgWindowTone = null;
+	};
+
+	const srpgUXWindows_Window_Base_updateTone = Window_Base.prototype.updateTone;
+	Window_Base.prototype.updateTone = function() {
+		if ($gameSystem.isSRPGMode() && _srpgChangeStatusWindowColor) {
+			const tone = this._srpgWindowTone || $gameSystem.windowTone();
+    		this.setTone(tone[0], tone[1], tone[2]);
+		} else {
+			srpgUXWindows_Window_Base_updateTone.call(this);
+		}
+	};
+
+	// ●Window_SrpgStatus
+    // ユニットのセット
+	const srpgUXWindows_Window_StatusBase_setBattler = Window_SrpgStatus.prototype.setBattler;
+    Window_SrpgStatus.prototype.setBattler = function(data, flip) {
+		srpgUXWindows_Window_StatusBase_setBattler.call(this, data, flip);
+		if (this._battler) {
+			let rgb = [];
+            if (this._type === 'actor') {
+				rgb = _srpgActorStatusWindowColor.split(',')
+            } else if (this._type === 'enemy') {
+                rgb = _srpgEnemyStatusWindowColor.split(',')
+            }
+			const r = Number(rgb[0]);
+			const g = Number(rgb[1]);
+			const b = Number(rgb[2]);
+            this._srpgWindowTone = [r, g, b, 0];
+        }
+        this.refresh();
+    };
+
+	// ●Window_SrpgBattleStatus
+	// ユニットのセット
+	const srpgUXWindows_Window_SrpgBattleStatus_setBattler = Window_SrpgBattleStatus.prototype.setBattler;
+    Window_SrpgBattleStatus.prototype.setBattler = function(battler) {
+		srpgUXWindows_Window_SrpgBattleStatus_setBattler.call(this, battler);
+        if (this._battler) {
+			let rgb = [];
+            if (this._type === 'actor') {
+				rgb = _srpgActorStatusWindowColor.split(',')
+            } else if (this._type === 'enemy') {
+                rgb = _srpgEnemyStatusWindowColor.split(',')
+            }
+			const r = Number(rgb[0]);
+			const g = Number(rgb[1]);
+			const b = Number(rgb[2]);
+            this._srpgWindowTone = [r, g, b, 0];
+        }
+        this.refresh();
+    };
 
 })();
