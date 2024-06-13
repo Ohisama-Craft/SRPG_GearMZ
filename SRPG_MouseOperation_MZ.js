@@ -533,7 +533,8 @@ Scene_Map.prototype.startActorTargetting = function() {
 };
 
 // setHiddenPointer after any action
-// I don't know how to prevent Graphics.setHiddenPointer(false); in $.TouchInput_onMouseMove to be executed until the cursor really arrived to target
+// I don't know how to prevent Graphics.setHiddenPointer(false); 
+// in $.TouchInput_onMouseMove to be executed until the cursor really arrived to target
 $.srpgAfterAction = Scene_Map.prototype.srpgAfterAction;
 Scene_Map.prototype.srpgAfterAction = function() {
     $.srpgAfterAction.call(this);
@@ -566,17 +567,17 @@ Input.update = function() {
 $.TouchInput_onMouseMove = TouchInput._onMouseMove;
 TouchInput._onMouseMove = function(event) {
   $.TouchInput_onMouseMove.call(this,event);
+  if ($gameSystem && $gameSystem.isSRPGMode()) {
+    // プレイヤーの移動中は、以下の処理はスキップする
+    if ($gameSystem.srpgWaitMoving() ||
+        $gameTemp.isAutoMoveDestinationValid() ||
+        $gamePlayer.isJumping()) {
+        return;
+    } 
+  }
   this._mouseX = Graphics.pageToCanvasX(event.pageX);
   this._mouseY = Graphics.pageToCanvasY(event.pageY);
   Graphics.setHiddenPointer(false);
-};
-
-$.TouchInput_onWheel = TouchInput._onWheel;
-TouchInput._onWheel = function(event) {
-    $.TouchInput_onWheel.call(this, event);
-    if ($gameSystem.isSRPGMode()) {
-        Graphics.setHiddenPointer(true);
-    }
 };
 
 // Note for Mr Takumi Ariake
@@ -647,7 +648,28 @@ TouchInput.atDeepBottomBorder = function(){
 //modified by OhisamaCraft
 TouchInput.inButtonArea = function(){
   if (!ConfigManager.touchUI) return false;
-  if (this._mouseX > (Graphics.width - 48 - 4) && this._mouseY < (48 + 4)) return true;
+  if ($gameSystem && $gameSystem.isSRPGMode()) {
+    const offsetX = (Graphics.width - Graphics.boxWidth) / 2;
+    const offsetY = (Graphics.height - Graphics.boxHeight) / 2;
+    const width = Sprite_Button.prototype.blockWidth.call(this) * 2;
+    const height = Sprite_Button.prototype.blockHeight.call(this);
+    const menuX = offsetX + Graphics.boxWidth - width - 4;
+    const menuY = offsetY + 2;
+    const menuLeft = menuX;
+    const menuRight = menuX + width;
+    const menuUpper = menuY;
+    const menuLower = menuY + height;
+    const pageX = offsetX + 4;
+    const pageY = offsetY + 2;
+    const pageLeft = pageX;
+    const pageRight = pageX + width + 4;
+    const pageUpper = pageY;
+    const pageLower = pageY + height;
+    return (((this._mouseX > menuLeft && this._mouseX < menuRight) &&
+             (this._mouseY > menuUpper && this._mouseY < menuLower)) ||
+            ((this._mouseX > pageLeft && this._mouseX < pageRight) &&
+             (this._mouseY > pageUpper && this._mouseY < pageLower)));
+  }
   return false;
 };
 
@@ -738,7 +760,7 @@ Game_Map.prototype.updatePlayerFollowMouse = function() {
 
   var _SRPG_MO_Game_Player_moveByInput = Game_Player.prototype.moveByInput;
   Game_Player.prototype.moveByInput = function() { 
-    if ($gameSystem.isSRPGMode() === true && $gameSystem.isPlayerFollowMouse() &&
+    if ($gameSystem.isSRPGMode() && $gameSystem.isPlayerFollowMouse() &&
         !this.isMoving() && this.canMove() && !Graphics._hiddenPointer) {
           var x = $gameMap.canvasToMapX(TouchInput._mouseX);
           var y = $gameMap.canvasToMapY(TouchInput._mouseY);
@@ -801,11 +823,13 @@ Game_Map.prototype.updateSRPGCursorCenter = function() {
   if ($gameSystem.isSubBattlePhase() === 'invoke_action') this.camCenterTo($gamePlayer);
   if ($gameSystem.isSubBattlePhase() === 'actor_move') this._flagSRPGNormalPhaseCenterOnce = false;
   if ($gameSystem.isSubBattlePhase() === 'normal'){
-    if(!this._flagSRPGNormalPhaseCenterOnce) {
+    // modified by OhisamaCraft
+    if(!this._flagSRPGNormalPhaseCenterOnce && !$gameSystem.isPlayerFollowMouse()) {
+      Graphics.setHiddenPointer(true);
       this.camCenterTo($gamePlayer);
     };
     if(this.isSRPGCamCenterStopMoving(this._oldSRPGScreenCheckX, this._oldSRPGScreenCheckY, $gamePlayer)){
-      this._flagSRPGNormalPhaseCenterOnce = true;
+       this._flagSRPGNormalPhaseCenterOnce = true;
       this._oldSRPGScreenCheckX = false;
       this._oldSRPGScreenCheckY = false;
     } 
@@ -843,11 +867,9 @@ TouchInput._onWheel = function(event) {
   if ($gameSystem.isSubBattlePhase() !== 'normal') return;
   if ($gamePlayer && $gamePlayer.isMoving()) return;
   if(this._newState.wheelY > 0){
-    SoundManager.playCursor();
     $gameSystem.getNextRActor();
   }; 
   if(this._newState.wheelY < 0) {
-    SoundManager.playCursor();
     $gameSystem.getNextLActor();
   };
 };
@@ -855,6 +877,7 @@ TouchInput._onWheel = function(event) {
 $.Game_System_getNextRActor = Game_System.prototype.getNextRActor;
 Game_System.prototype.getNextRActor = function() {
   $.Game_System_getNextRActor.call(this);
+  Graphics.setHiddenPointer(true);
   if(!$.Parameters.isWheelCenter) return;
   $gameMap._flagSRPGNormalPhaseCenterOnce = false;  
   $gameMap._oldSRPGScreenCheckX = false;
@@ -864,11 +887,20 @@ Game_System.prototype.getNextRActor = function() {
 $.Game_System_getNextLActor = Game_System.prototype.getNextLActor;
 Game_System.prototype.getNextLActor = function() {
   $.Game_System_getNextLActor.call(this);
+  Graphics.setHiddenPointer(true);
   if(!$.Parameters.isWheelCenter) return;
   $gameMap._flagSRPGNormalPhaseCenterOnce = false;
   $gameMap._oldSRPGScreenCheckX = false;
   $gameMap._oldSRPGScreenCheckY = false;
 };
 
+// overwrite Return Cursor when Deselecting (in SRPG_UX_Cursor)
+Scene_Map.prototype.isReturnCursorDeselecting = function() {
+  return ((($gameSystem.isSubBattlePhase() === 'actor_move' &&
+      !($gameSystem.isPlayerFollowMouse() && !Graphics._hiddenPointer))) ||
+      $gameSystem.isSubBattlePhase() === 'actor_target' ||
+      $gameSystem.isSubBattlePhase() === 'actor_targetArea') &&
+      this.isMenuCalled();
+};
 
 })(EST.SRPGMouseOperation);
