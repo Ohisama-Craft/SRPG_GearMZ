@@ -342,36 +342,35 @@
 //====================================================================
 // cursor automatically moves as needed
 //====================================================================
+	Scene_Map.prototype.isReturnCursorDeselecting = function() {
+		return (($gameSystem.isSubBattlePhase() === 'actor_move' ||
+				$gameSystem.isSubBattlePhase() === 'actor_target' ||
+				$gameSystem.isSubBattlePhase() === 'actor_targetArea') &&
+				this.isMenuCalled());
+	};
 
 	// cancel movement or target, plus quick targeting
 	var _updateCallMenu = Scene_Map.prototype.updateCallMenu;
 	Scene_Map.prototype.updateCallMenu = function() {
 		if ($gameSystem.isSRPGMode() && !$gameSystem.srpgWaitMoving()) {
 			// return cursor when deselecting
-			if (($gameSystem.isSubBattlePhase() === 'actor_move' ||
-				$gameSystem.isSubBattlePhase() === 'actor_target' ||
-				$gameSystem.isSubBattlePhase() === 'actor_targetArea') &&
-				this.isMenuCalled()) {
+			if (this.isReturnCursorDeselecting()) {
 				var event = $gameTemp.activeEvent();
 				$gamePlayer.slideTo(event.posX(), event.posY());
 			}
 			// page through valid selections
 			if (Input.isTriggered('pagedown')) {
 				if (moveSwitch && $gameSystem.isSubBattlePhase() === 'actor_move') {
-					SoundManager.playCursor();
 					$gameSystem.getNextRActor();
 				}
 				if (quickTarget && ($gameSystem.isSubBattlePhase() === 'actor_target' || $gameSystem.isSubBattlePhase() === 'actor_targetArea')) {
-					SoundManager.playCursor();
 					$gameSystem.getNextRTarget();
 				}
 			} else if (Input.isTriggered('pageup')) {
 				if (moveSwitch && $gameSystem.isSubBattlePhase() === 'actor_move') {
-					SoundManager.playCursor();
 					$gameSystem.getNextLActor();
 				}
 				if (quickTarget && ($gameSystem.isSubBattlePhase() === 'actor_target' || $gameSystem.isSubBattlePhase() === 'actor_targetArea')) {
-					SoundManager.playCursor();
 					$gameSystem.getNextLTarget();
 				}
 			}
@@ -443,6 +442,7 @@
 
 	// find the next valid target
 	Game_System.prototype.getNextRTarget = function() {
+		SoundManager.playCursor();
 		var id = 0;
 		var events = $gameMap.eventsXyNt($gamePlayer.x, $gamePlayer.y);
 		if (events && events.length > 0) {
@@ -454,6 +454,7 @@
 
 	// find the previous valid target
 	Game_System.prototype.getNextLTarget = function() {
+		SoundManager.playCursor();
 		var id = 0;
 		var events = $gameMap.eventsXyNt($gamePlayer.x, $gamePlayer.y);
 		if (events && events.length > 0) {
@@ -465,6 +466,8 @@
 
 	// override the actor selecting functions with a different formula
 	Game_System.prototype.getNextRActor = function() {
+		SoundManager.playCursor();
+		$gameTemp.clearDestination();
 		var id = 0;
 		var events = $gameMap.eventsXyNt($gamePlayer.x, $gamePlayer.y);
 		if (events && events.length > 0) {
@@ -474,6 +477,8 @@
 		return (id != newId);
 	};
 	Game_System.prototype.getNextLActor = function() {
+		SoundManager.playCursor();
+		$gameTemp.clearDestination();
 		var id = 0;
 		var events = $gameMap.eventsXyNt($gamePlayer.x, $gamePlayer.y);
 		if (events && events.length > 0) {
@@ -576,12 +581,14 @@
 	};
 
 	// automatically highlight the first target when you start targeting
+	// modified by OhisamaCraft
 	var _UXCursor_startActorTargetting = Scene_Map.prototype.startActorTargetting;
 	Scene_Map.prototype.startActorTargetting = function() {
 		_UXCursor_startActorTargetting.call(this);
 		const battler = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1];
 		const action = battler.currentAction();
-		if (autoTarget && !action.isForDeadFriend()) {
+		if (autoTarget && !action.isForDeadFriend() &&
+			!($gameSystem.isPlayerFollowMouse() && !Graphics._hiddenPointer)) {
 			var id = $gameSystem.findSelection("target");
 			if ($gameTemp.canAutoSelect()) {
 				var event = $gameMap.event(id);
