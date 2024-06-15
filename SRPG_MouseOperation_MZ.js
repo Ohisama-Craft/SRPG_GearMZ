@@ -403,6 +403,9 @@ var EST = EST || {};
 EST.SRPGMouseOperation = EST.SRPGMouseOperation || {};
 EST.SRPGMouseOperation.pluginName="SRPG_MouseOperation_MZ";
 
+const coreParameters = PluginManager.parameters('SRPG_core_MZ');
+var _srpgUseArrowButtons = coreParameters['srpgUseArrowButtons'] || 'true';
+
 // マウスの表示・非表示の切り替え modified by OhisamaCraft
 // 参考：トリアコンタン様のMousePointerExtend.js
 //=============================================================================
@@ -659,16 +662,21 @@ TouchInput.inButtonArea = function(){
     const menuRight = menuX + width;
     const menuUpper = menuY;
     const menuLower = menuY + height;
-    const pageX = offsetX + 4;
-    const pageY = offsetY + 2;
-    const pageLeft = pageX;
-    const pageRight = pageX + width + 4;
-    const pageUpper = pageY;
-    const pageLower = pageY + height;
-    return (((this._mouseX > menuLeft && this._mouseX < menuRight) &&
-             (this._mouseY > menuUpper && this._mouseY < menuLower)) ||
-            ((this._mouseX > pageLeft && this._mouseX < pageRight) &&
-             (this._mouseY > pageUpper && this._mouseY < pageLower)));
+    if (_srpgUseArrowButtons !== "true") {
+      return ((this._mouseX > menuLeft && this._mouseX < menuRight) &&
+              (this._mouseY > menuUpper && this._mouseY < menuLower));
+    } else {
+      const pageX = offsetX + 4;
+      const pageY = offsetY + 2;
+      const pageLeft = pageX;
+      const pageRight = pageX + width + 4;
+      const pageUpper = pageY;
+      const pageLower = pageY + height;
+      return (((this._mouseX > menuLeft && this._mouseX < menuRight) &&
+               (this._mouseY > menuUpper && this._mouseY < menuLower)) ||
+              ((this._mouseX > pageLeft && this._mouseX < pageRight) &&
+               (this._mouseY > pageUpper && this._mouseY < pageLower)));
+    }
   }
   return false;
 };
