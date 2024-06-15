@@ -1,6 +1,6 @@
 //=============================================================================
 // SRPG_core_MZ.js -SRPGギアMZ-
-// バージョン      : 1.16 + Q
+// バージョン      : 1.17 + Q
 // 最終更新日      : 2024/6/15
 // 製作            : Tkool SRPG team（有明タクミ、RyanBram、Dr.Q、Shoukang、Boomy）
 // 協力            : アンチョビさん、エビさん、Tsumioさん
@@ -329,6 +329,12 @@
  * @param srpgRangeTerrainTag7
  * @parent BattleExtensionParam
  * @desc Make the terrain tag 7 that does not pass the range.(true / false)
+ * @type boolean
+ * @default true
+ * 
+ * @param srpgUseArrowButtons
+ * @parent BattleExtensionParam
+ * @desc Displays an arrow button to switch actors with a click. (true / false)
  * @type boolean
  * @default true
  *
@@ -1892,6 +1898,12 @@
  * @desc 地形タグ７を射程が通らないタイルにします。(true / false)
  * @type boolean
  * @default true
+ * 
+ * @param srpgUseArrowButtons
+ * @parent BattleExtensionParam
+ * @desc 画面左上にクリックでアクターを切り替えられる矢印ボタンを表示します。(true / false)
+ * @type boolean
+ * @default true
  *
  * @param SRPGTerm
  * @desc 『待機』や『移動力』などの用語を設定します。
@@ -3146,6 +3158,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
     var _srpgDamageDirectionChange = parameters['srpgDamageDirectionChange'] || 'true';
     var _srpgSkipTargetForSelf = parameters['srpgSkipTargetForSelf'] || 'true';
     var _srpgRangeTerrainTag7 = parameters['srpgRangeTerrainTag7'] || 'true';
+    var _srpgUseArrowButtons = parameters['srpgUseArrowButtons'] || 'true';
     var _textSrpgEquip = parameters['textSrpgEquip'] || '装備';
     var _textSrpgMove = parameters['textSrpgMove'] || '移動力';
     var _textSrpgWeaponRange = parameters['textSrpgWeaponRange'] || '武器射程';
@@ -9960,10 +9973,20 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
             if (ConfigManager.touchUI) {
                 this.createMenuButton();
                 this.createCancelButton();
-                this.createPageButtons();
+                if (_srpgUseArrowButtons === "true") this.createPageButtons();
             }
         } else {
             _SRPG_SceneMap_createButtons.call(this);
+        }
+    };
+
+    Scene_Map.prototype.reCreateButtons = function() {
+        if (ConfigManager.touchUI) {
+            if (!this._menuButton ||
+                !this._cancelButton ||
+                (_srpgUseArrowButtons === "true" && !(this._pageupButton && this._pagedownButton))) {
+                    this.createButtons();
+            }
         }
     };
 
@@ -9987,10 +10010,12 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
         this._pageupButton = new Sprite_Button("pageup");
         this._pageupButton.x = (Graphics.width - Graphics.boxWidth) / 2 + 4;
         this._pageupButton.y = this.buttonY();
+        this._pageupButton.visible = false;
         const pageupRight = this._pageupButton.x + this._pageupButton.width;
         this._pagedownButton = new Sprite_Button("pagedown");
         this._pagedownButton.x = pageupRight + 4;
         this._pagedownButton.y = this.buttonY();
+        this._pagedownButton.visible = false;
         this.addWindow(this._pageupButton);
         this.addWindow(this._pagedownButton);
         this._pageupButton.setClickHandler($gameSystem.getNextLActor.bind(this));
@@ -10219,7 +10244,9 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
         if (!$gameSystem.isSRPGMode()) return false;
         if ($gameSystem.isCancelButtonEnabled() && this.inCancelButtonArea()) return true;
         if (this.isMenuEnabled() && this.inMenuButtonArea()) return true;
-        if (this.isMenuEnabled() && this.inPageButtonArea()) return true;
+        if (this.isMenuEnabled() && (this._pageupButton && this._pagedownButton)) {
+            if (this.inPageButtonArea()) return true;
+        }
         return false;
     };
 
@@ -10267,6 +10294,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
     const _SRPG_SceneMap_updateMenuButton = Scene_Map.prototype.updateMenuButton;
     Scene_Map.prototype.updateMenuButton = function() {
         if ($gameSystem.isSRPGMode()) {
+            this.reCreateButtons();
             if (this._menuButton) {
                 const menuEnabled = this.isMenuEnabled();
                 if (menuEnabled === this._menuEnabled) {
