@@ -9,6 +9,7 @@
  * @target MZ
  * @plugindesc SRPG window improvements, edited by OhisamaCraft.
  * @author Dr. Q
+ * @base SRPG_core_MZ
  *
  * @param Hide No Rewards
  * @desc Don't show the window if you don't get anything
@@ -62,6 +63,18 @@
  * Automatic changes:
  * - Status windows can also be closed with cancel/menu
  * - Skills are correctly disabled in the menu when not usable
+ * 
+ * ============================================================================
+ * Settings via Tags (Notes)
+ * ============================================================================
+ * === Actor Notes ===
+ * <hideHpMp:true> # HP, MP, and TP will be displayed as '???'.
+ * 
+ * === Enemy Notes ===
+ * <hideHpMp:true> # HP, MP, and TP will be displayed as '???'.
+ * 
+ * === State Notes ===
+ * <showHpMp:true> # While in this state, the <hideHpMp> tag is disabled.
  *
  */
 
@@ -69,6 +82,7 @@
  * @target MZ
  * @plugindesc SRPGでのウィンドウを改善します（おひさまクラフトによる改変）。
  * @author Dr. Q
+ * @base SRPG_core_MZ
  *
  * @param Hide No Rewards
  * @desc 何も報酬を入手しなかった場合、ウィンドウを表示しません。
@@ -122,6 +136,18 @@
  * 自動適用:
  * - キャンセル/メニューボタンでもステータスウィンドウを閉じることが可能になります。
  * - メニューにて使用できないスキルが、適切に無効化されます。
+ * 
+ * ============================================================================
+ * タグ（メモ）による設定
+ * ============================================================================
+ * === アクターのメモ ===
+ *   <hideHpMp:true> # HP, MP, TPの表示が'???'になります。
+ * 
+ * === エネミーのメモ ===
+ *   <hideHpMp:true> # HP, MP, TPの表示が'???'になります。
+ * 
+ * === ステートのメモ ===
+ *   <showHpMp:true> # このステートになっている間、<hideHpMp>タグが無効化されます。
  *
  */
 
@@ -192,29 +218,6 @@
         }
         return false;
 	};
-
-	// don't show the xp bar if no xp was gained
-	/*Window_SrpgBattleResult.prototype.drawContents = function() {
-		var lineHeight = this.lineHeight();
-		var pos = 0;
-
-		// check for exp
-		if (this._rewards.exp > 0) {
-			this.drawGainExp(6, lineHeight * pos);
-			pos += 2;
-		} else {
-			this._changeExp = 0;
-		}
-
-		// check for gold
-		if (this._rewards.gold > 0) {
-			this.drawGainGold(6, lineHeight * pos);
-			pos += 1;
-		}
-
-		// items are last, so they just happen
-		this.drawGainItem(0, lineHeight * pos);
-	};*/
 
 //====================================================================
 // only show one window when self-targeting
@@ -320,5 +323,78 @@
         }
         this.refresh();
     };
+
+//====================================================================
+// Do not display HP/MP based on the tag.
+//====================================================================
+	Game_BattlerBase.prototype.srpgHideHpMp = function() {
+		return false;
+	};
+
+    Game_Actor.prototype.srpgHideHpMp = function() {
+		let value = false;
+		this.states().forEach(function(state) {
+            if (state && state.meta.showHpMp === 'true') value = true;
+        }, this);
+		if (value === true) return false;
+		if (this.actor().meta.hideHpMp === 'true') return true;
+		return false;
+    };
+
+	Game_Enemy.prototype.srpgHideHpMp = function() {
+		let value = false;
+		this.states().forEach(function(state) {
+            if (state && state.meta.showHpMp === 'true') value = true;
+        }, this);
+		if (value === true) return false;
+		if (this.enemy().meta.hideHpMp === 'true') return true;
+		return false;
+    };
+
+	const srpgUXWindows_ColorManager_hpColor = ColorManager.hpColor;
+	ColorManager.hpColor = function(actor) {
+		if (actor && $gameSystem.isSRPGMode() && actor.srpgHideHpMp()) {
+			return this.normalColor();
+		} else {
+			return srpgUXWindows_ColorManager_hpColor.call(this, actor);
+		}
+	};
+
+	const srpgUXWindows_Sprite_Gauge_currentValue = Sprite_Gauge.prototype.currentValue;
+	Sprite_Gauge.prototype.currentValue = function() {
+		if (this._battler) {
+			if ($gameSystem.isSRPGMode() && this._battler.srpgHideHpMp() && this._statusType !== "exp") {
+				return 100;
+			} else {
+				return srpgUXWindows_Sprite_Gauge_currentValue.call(this);
+			}
+		}
+		return NaN;
+	};
+	
+	const srpgUXWindows_Sprite_Gauge_currentMaxValue = Sprite_Gauge.prototype.currentMaxValue;
+	Sprite_Gauge.prototype.currentMaxValue = function() {
+		if (this._battler) {
+			if ($gameSystem.isSRPGMode() && this._battler.srpgHideHpMp() && this._statusType !== "exp") {
+				return 100;
+			} else {
+				return srpgUXWindows_Sprite_Gauge_currentMaxValue.call(this);
+			}
+		}
+		return NaN;
+	};
+
+	const srpgUXWindows_Sprite_Gauge_drawValue = Sprite_Gauge.prototype.drawValue;
+	Sprite_Gauge.prototype.drawValue = function() {
+		if ($gameSystem.isSRPGMode() && this._battler && this._battler.srpgHideHpMp() && this._statusType !== "exp") {
+			const currentValue = '???';
+    		const width = this.bitmapWidth();
+    		const height = this.textHeight();
+    		this.setupValueFont();
+    		this.bitmap.drawText(currentValue, 0, 0, width, height, "right");
+		} else {
+			srpgUXWindows_Sprite_Gauge_drawValue.call(this);
+		}
+	};
 
 })();
