@@ -8,6 +8,7 @@
  * @target MZ
  * @plugindesc Allow you to summon/enemy/objects during SRPG battle. v 1.04 Fix a bug for wrong action subject, edited by OhisamaCraft.
  * @author Shoukang
+ * @base SRPG_core_MZ
  *
  * @param Summon Map Id
  * @desc the map Id for summon events
@@ -85,6 +86,7 @@
  * @target MZ
  * @plugindesc SRPG戦闘中に敵キャラやオブジェクトを召喚することが可能になります（おひさまクラフトによる改変）。v 1.04では誤った行動主体の不具合を修正。
  * @author Shoukang
+ * @base SRPG_core_MZ
  *
  * @param Summon Map Id
  * @desc 召喚イベント用のマップID
