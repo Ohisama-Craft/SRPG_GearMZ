@@ -8,8 +8,11 @@
 //=============================================================================
 /*:
  * @target MZ
- * @plugindesc More move modes and improved pathfinding that can handle all conditions! , edited by OhisamaCraft.
+ * @plugindesc More move modes and improved pathfinding that can handle all conditions! , edited by OhisamaCraft. Need SRPG_AIControl_MZ.
  * @author Shoukang
+ * @base SRPG_core_MZ
+ * @orderAfter SRPG_RangeControl_MZ
+ * @orderAfter SRPG_AIControl_MZ
  *
  * @param search range
  * @desc How many move points pathfinding AI can consume before stop, set low to to avoid lag spikes.
@@ -118,8 +121,11 @@
 
 /*:ja
  * @target MZ
- * @plugindesc 移動モードを追加し、あらゆる条件を考慮するように経路探索を改善します（おひさまクラフトによる改変）。
+ * @plugindesc 移動モードを追加し、あらゆる条件を考慮するように経路探索を改善します（おひさまクラフトによる改変）。SRPG_AIControl_MZが必要です。
  * @author Shoukang
+ * @base SRPG_core_MZ
+ * @orderAfter SRPG_RangeControl_MZ
+ * @orderAfter SRPG_AIControl_MZ
  *
  * @param search range
  * @desc AIが経路探索を終了する前に消費する移動ポイントの数。ラグを回避するためには、低い値に設定してください。
