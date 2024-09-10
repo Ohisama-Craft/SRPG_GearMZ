@@ -9,6 +9,7 @@
  * @target MZ
  * @plugindesc SRPG cursor, movement, and selection upgrades, edited by OhisamaCraft.
  * @author Dr. Q
+ * @base SRPG_core_MZ
  *
  * @param Cursor-Style Movement
  * @desc Make the cursor move like a cursor
@@ -127,6 +128,7 @@
  * @target MZ
  * @plugindesc SRPG用のカーソル、移動および選択を改善します（おひさまクラフトによる改変）。
  * @author Dr. Q
+ * @base SRPG_core_MZ
  *
  * @param Cursor-Style Movement
  * @desc カーソル移動をカーソル形式にします。
@@ -260,12 +262,12 @@
 //====================================================================
 
 	// Override cursor speed
-	var _realMoveSpeed = Game_Player.prototype.realMoveSpeed;
+	const _SRPG_UXCursor_realMoveSpeed = Game_Player.prototype.realMoveSpeed;
 	Game_Player.prototype.realMoveSpeed = function() {
 		if ($gameSystem.isSRPGMode() && cursorStyle) {
 			return cursorSpeed;
 		} else {
-			return _realMoveSpeed.call(this);
+			return _SRPG_UXCursor_realMoveSpeed.call(this);
 		}
 	};
 
@@ -280,7 +282,7 @@
 	};
 
 	// override movement to act more like a cursor
-	var _moveByInput = Game_Player.prototype.moveByInput;
+	const _SRPG_UXCursor_moveByInput = Game_Player.prototype.moveByInput;
 	Game_Player.prototype.moveByInput = function() {
 		if ($gameSystem.isSRPGMode() && cursorStyle && !this.isMoving()) {
 			// automatic movement
@@ -318,7 +320,7 @@
 				return;
 			}
 		}
-		_moveByInput.call(this);
+		_SRPG_UXCursor_moveByInput.call(this);
 	};
 
 //====================================================================
@@ -326,17 +328,17 @@
 //====================================================================
 
 	// cursor animates even while static
-	_hasStepAnime = Game_Player.prototype.hasStepAnime;
+	const _SRPG_UXCursor_hasStepAnime = Game_Player.prototype.hasStepAnime;
 	Game_Player.prototype.hasStepAnime = function() {
 		if ($gameSystem.isSRPGMode() && animateCursor) return true;
-		return _hasStepAnime.call(this);
+		return _SRPG_UXCursor_hasStepAnime.call(this);
 	};
 
 	// custom cursor animation rate
-	_animationWait = Game_Player.prototype.animationWait;
+	const _SRPG_UXCursor_animationWait = Game_Player.prototype.animationWait;
 	Game_Player.prototype.animationWait = function() {
 		if ($gameSystem.isSRPGMode() && animateCursor) return animateDelay;
-		return _animationWait.call(this);
+		return _SRPG_UXCursor_animationWait.call(this);
 	};
 
 //====================================================================
@@ -350,7 +352,7 @@
 	};
 
 	// cancel movement or target, plus quick targeting
-	var _updateCallMenu = Scene_Map.prototype.updateCallMenu;
+	const _SRPG_UXCursor_updateCallMenu = Scene_Map.prototype.updateCallMenu;
 	Scene_Map.prototype.updateCallMenu = function() {
 		if ($gameSystem.isSRPGMode() && !$gameSystem.srpgWaitMoving()) {
 			// return cursor when deselecting
@@ -375,13 +377,13 @@
 				}
 			}
 		}
-		_updateCallMenu.call(this);
+		_SRPG_UXCursor_updateCallMenu.call(this);
 	};
 
 	// If autoselect applies, cancelling the battle preview skips back to the command window
-	var _selectPreviousSrpgBattleStart = Scene_Map.prototype.selectPreviousSrpgBattleStart;
+	const _SRPG_UXCursor_selectPreviousSrpgBattleStart = Scene_Map.prototype.selectPreviousSrpgBattleStart;
 	Scene_Map.prototype.selectPreviousSrpgBattleStart = function() {
-		_selectPreviousSrpgBattleStart.call(this);
+		_SRPG_UXCursor_selectPreviousSrpgBattleStart.call(this);
 		if ($gameTemp.canAutoSelect()) {
 			var event = $gameTemp.activeEvent();
 			var battlerArray = $gameSystem.EventToUnit(event.eventId());
@@ -536,9 +538,9 @@
 	};
 
 	// add next/previous target commands to the attack preview
-	var _createSrpgBattleWindow = Scene_Map.prototype.createSrpgBattleWindow;
+	const _SRPG_UXCursor_createSrpgBattleWindow = Scene_Map.prototype.createSrpgBattleWindow;
 	Scene_Map.prototype.createSrpgBattleWindow = function() {
-		_createSrpgBattleWindow.call(this);
+		_SRPG_UXCursor_createSrpgBattleWindow.call(this);
 		if (previewSwitch) {
 			this._mapSrpgBattleWindow.setHandler('pageup', this.switchMenuTarget.bind(this, false));
 			this._mapSrpgBattleWindow.setHandler('pagedown', this.switchMenuTarget.bind(this, true));
@@ -582,9 +584,9 @@
 
 	// automatically highlight the first target when you start targeting
 	// modified by OhisamaCraft
-	var _UXCursor_startActorTargetting = Scene_Map.prototype.startActorTargetting;
+	const _SRPG_UXCursor_UXCursor_startActorTargetting = Scene_Map.prototype.startActorTargetting;
 	Scene_Map.prototype.startActorTargetting = function() {
-		_UXCursor_startActorTargetting.call(this);
+		_SRPG_UXCursor_UXCursor_startActorTargetting.call(this);
 		const battler = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1];
 		const action = battler.currentAction();
 		if (autoTarget && !action.isForDeadFriend() &&
@@ -597,7 +599,7 @@
 		}
 	};
 
-	var _triggerAction = Game_Player.prototype.triggerAction;
+	const _SRPG_UXCursor_triggerAction = Game_Player.prototype.triggerAction;
 	Game_Player.prototype.triggerAction = function() {
 		// manually switch actors during the movement phase
 		if (moveSwitch && $gameSystem.isSRPGMode() && $gameSystem.isSubBattlePhase() === 'actor_move' &&
@@ -626,13 +628,13 @@
 				return;
 			}
 		}
-		_triggerAction.call(this);
+		_SRPG_UXCursor_triggerAction.call(this);
 	}
 
 	// after completing an action, move the cursor to the next actor
-	var _srpgAfterAction = Scene_Map.prototype.srpgAfterAction;
-	Scene_Map.prototype.srpgAfterAction = function() {
-		_srpgAfterAction.call(this);
+	const _SRPG_UXCursor_passTurnNextUnit = Scene_Map.prototype.passTurnNextUnit;
+	Scene_Map.prototype.passTurnNextUnit = function() {
+		_SRPG_UXCursor_passTurnNextUnit.call(this);
 		if (autoActor && $gameSystem.isBattlePhase() === 'actor_phase' &&
 		$gameSystem.isSubBattlePhase() === 'normal') {
 			$gameSystem.getNextRActor();
