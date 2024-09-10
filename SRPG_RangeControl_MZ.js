@@ -9,7 +9,7 @@
  * @target MZ
  * @plugindesc SRPG line of sight, passability, variable range, and more, edited by OhisamaCraft.
  * @author Dr. Q
- *
+ * @base SRPG_core_MZ
  *
  * @param Range
  *
@@ -237,7 +237,7 @@
  * @target MZ
  * @plugindesc SRPG戦闘での射線（攻撃範囲の制限）、移動、射程の変更などを実装する(おひさまクラフトによる改変あり)。
  * @author Dr. Q
- *
+ * @base SRPG_core_MZ
  *
  * @param Range
  *
@@ -418,9 +418,6 @@
  * 
  * プラグインパラメータを利用して、デフォルトの射線（攻撃範囲の制限）を設定します。
  * たとえば、攻撃などの射程が敵のユニットを通過できなくしたりします。
- * 
- * おひさまクラフトによる改変
- * 和訳を追加、srpgWRangePlusに対応
  *
  * 新しいアクターと職業のメモ:
  * <srpgWeaponRange:X>           # 武器を装備していない場合の攻撃射程を指定します
@@ -530,10 +527,10 @@
 		return n;
 	};
 	Game_Enemy.prototype.tagValue = function(type) {
-		var n = Game_BattlerBase.prototype.tagValue.call(this, type);
+		let n = Game_BattlerBase.prototype.tagValue.call(this, type);
 		if (this.enemy().meta[type]) n += Number(this.enemy().meta[type]);
 		if (!this.hasNoWeapons()) {
-			var weapon = $dataWeapons[this.enemy().meta.srpgWeapon];
+			const weapon = $dataWeapons[this.srpgWeaponId()];
 			if (weapon && weapon.meta[type]) n += Number(weapon.meta[type]);
 		}
 		return n;
@@ -574,10 +571,10 @@
 		if (this.actor().meta[type]) return this.actor().meta[type];
 	};
 	Game_Enemy.prototype.priorityTag = function(type) {
-		var t = Game_BattlerBase.prototype.priorityTag.call(this, type);
+		const t = Game_BattlerBase.prototype.priorityTag.call(this, type);
 		if (t) return t;
 		if (!this.hasNoWeapons()) {
-			var weapon = $dataWeapons[this.enemy().meta.srpgWeapon];
+			const weapon = $dataWeapons[this.srpgWeaponId()];
 			if (weapon && weapon.meta[type]) return weapon.meta[type];
 		}
 		if (this.enemy().meta[type]) return this.enemy().meta[type];
@@ -643,13 +640,13 @@
 	// breadth-first search for range
 	// modified by OhisamaCraft
 	Game_CharacterBase.prototype.makeRangeTable = function(x, y, range, unused, oriX, oriY, skill) {
-		var user = $gameSystem.EventToUnit(this.eventId())[1];
+		const user = $gameSystem.EventToUnit(this.eventId())[1];
 		if (!skill || !user) return;
-		var minRange = user.srpgSkillMinRange(skill);
+		const minRange = user.srpgSkillMinRange(skill);
 
 		// all actor or enemy
-		if (skill.meta.specialRange === 'allActor' || skill.meta.specialRange === 'allEnemy') {
-			this.makeAllRangeTableAndList(skill, x, y);
+		if (user.isAllRangeSkill(skill)) {
+			this.makeAllRangeTableAndList(user, skill, x, y);
 			return;
 		}
 
@@ -700,12 +697,11 @@
 
 	// 全体射程の射程範囲を作成する
 	// modified by OhisamaCraft
-	Game_CharacterBase.prototype.makeAllRangeTableAndList = function(skill, x, y) {
+	Game_CharacterBase.prototype.makeAllRangeTableAndList = function(battler, skill, x, y) {
+		const specialRange = battler.srpgSkillSpecialRange(skill);
 		$gameMap.events().forEach(function(event) {
-            if ((skill.meta.specialRange === 'allActor' && 
-				 event.isType() === 'actor' && !event.isErased()) ||
-				(skill.meta.specialRange === 'allEnemy' && 
-				 event.isType() === 'enemy' && !event.isErased()) ) {
+            if ((specialRange === 'allActor' && (event.isType() === 'actor' && !event.isErased())) ||
+				(specialRange === 'allEnemy' && (event.isType() === 'enemy' && !event.isErased())) ) {
 				var dx = event.posX();
 				var dy = event.posY();
 				if ($gameTemp.RangeTable(dx, dy)[0] < 0) {
@@ -1049,12 +1045,13 @@
 		}
 		return _defaultMinRange;
 	};
+
 	Game_Enemy.prototype.srpgSkillMinRange = function(skill) {
 		if (!skill) return _defaultMinRange;
 
 		if (skill.meta.srpgRange == -1) {
 			if (!this.hasNoWeapons()) {
-				var weapon = $dataWeapons[this.enemy().meta.srpgWeapon];
+				const weapon = $dataWeapons[this.srpgWeaponId()];
 				if (weapon && weapon.meta.weaponMinRange) return Number(weapon.meta.weaponMinRange);
 			} else if (this.enemy().meta.weaponMinRange) {
 				return Number(this.enemy().meta.weaponMinRange);
@@ -1067,15 +1064,15 @@
 
 	// apply the bonuses to the maximum range
 	Game_Actor.prototype.srpgSkillRange = function(skill) {
-		var range = _defaultRange;
+		let range = _defaultRange;
 		if (skill && skill.meta.srpgRange) {
-            var range = Number(skill.meta.srpgRange);
+            range = Number(skill.meta.srpgRange);
         }
-        var rangeWeapon = (range === -1) ? true : false;
+        const rangeWeapon = (range === -1) ? true : false;
 
 		if (rangeWeapon) {
 			if (!this.hasNoWeapons()) {
-				var weapon = this.weapons()[0];
+				const weapon = this.weapons()[0];
 				if (weapon.meta.weaponRange) range = Number(weapon.meta.weaponRange);
 			} else if (this.currentClass().meta.weaponRange) {
 				range = Number(this.currentClass().meta.weaponRange);
@@ -1086,26 +1083,26 @@
 
 		if (range === -1) range = 1;
         if (rangeWeapon) {
-			var wRangeMod = this.srpgWRangePlus();
+			const wRangeMod = this.srpgWRangePlus();
             range += wRangeMod;
         }
-		var minRange = this.srpgSkillMinRange(skill);
-		var rangeMod = this.srpgRangePlus();
+		const minRange = this.srpgSkillMinRange(skill);
+		const rangeMod = this.srpgRangePlus();
 		if (skill.meta.srpgVariableRange) {
 			range += rangeMod;
 		}
 		return Math.max(range, minRange);
 	};
 	Game_Enemy.prototype.srpgSkillRange = function(skill) {
-		var range = _defaultRange;
+		let range = _defaultRange;
 		if (skill && skill.meta.srpgRange) {
-            var range = Number(skill.meta.srpgRange);
+            range = Number(skill.meta.srpgRange);
         }
-        var rangeWeapon = (range === -1) ? true : false;
+        const rangeWeapon = (range === -1) ? true : false;
 
 		if (rangeWeapon) {
 			if (!this.hasNoWeapons()) {
-				var weapon = $dataWeapons[this.enemy().meta.srpgWeapon];
+				const weapon = $dataWeapons[this.srpgWeaponId()];
 				if (weapon && weapon.meta.weaponRange) {
                     range = Number(weapon.meta.weaponRange);
                 } else if (this.enemy().meta.weaponRange) {
@@ -1118,12 +1115,12 @@
 
 		if (range === -1) range = 1;
         if (rangeWeapon) {
-            var wRangeMod = this.srpgWRangePlus();
+            const wRangeMod = this.srpgWRangePlus();
             range += wRangeMod;
         }
 
-		var minRange = this.srpgSkillMinRange(skill);
-		var rangeMod = this.srpgRangePlus();
+		const minRange = this.srpgSkillMinRange(skill);
+		const rangeMod = this.srpgRangePlus();
 		if (skill.meta.srpgVariableRange) {
 			range += rangeMod;
 		}
@@ -1145,13 +1142,38 @@
 		n += this.tagValue("srpgMovePlus");
 		return Math.max(n, 0);
 	};
+	
 	Game_Enemy.prototype.srpgMove = function() {
-		var n = _defaultMove;
-		if (this.enemy().meta.srpgMove) {
-			n = Number(this.enemy().meta.srpgMove);
-		}
-		n += this.tagValue("srpgMovePlus");
-		return Math.max(n, 0);
+		if (this.srpgUseActorParamId() > 0) {
+            const actor = $gameActors.actor(this.srpgUseActorParamId());
+			const type = "srpgMovePlus";
+            let n = _defaultMove;
+			if (actor.currentClass().meta.srpgMove) {
+				n = Number(actor.currentClass().meta.srpgMove);
+			} else if (actor.actor().meta.srpgMove) {
+				n = Number(actor.actor().meta.srpgMove);
+			}
+			if (actor.actor().meta[type]) n += Number(actor.actor().meta[type]);
+			if (actor.currentClass().meta[type]) n += Number(actor.currentClass().meta[type]);
+			actor.equips().forEach(function(item) {
+				if (item && item.meta[type]) {
+					n += Number(item.meta[type]);
+				}
+			});
+			actor.skills().forEach(function(skill) {
+				if (skill && skill.meta[type]) {
+					n += Number(skill.meta[type]);
+				}
+			});
+			return Math.max(n, 0);
+        } else {
+            let n = _defaultMove;
+			if (this.enemy().meta.srpgMove) {
+				n = Number(this.enemy().meta.srpgMove);
+			}
+			n += this.tagValue("srpgMovePlus");
+			return Math.max(n, 0);
+        }
 	};
 
 })();
