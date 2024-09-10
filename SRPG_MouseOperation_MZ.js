@@ -8,6 +8,10 @@
 @plugindesc SRPG mouse operation improvements, modified by OhisamaCraft
 @author SRPG Team
 @target MZ
+@base SRPG_core_MZ
+@orderAfter SRPG_AoE_MZ
+@orderAfter SRPG_ShowPath_MZ
+@orderAfter SRPG_UX_Cursor_MZ
 
 @param borderMoveSettings
 @text Border Scroll Settings
@@ -206,6 +210,10 @@
 @plugindesc SRPGでのマウス操作を改善します（おひさまクラフトによる改変）。
 @author SRPG Team
 @target MZ
+@base SRPG_core_MZ
+@orderAfter SRPG_AoE_MZ
+@orderAfter SRPG_ShowPath_MZ
+@orderAfter SRPG_UX_Cursor_MZ
 
 @param borderMoveSettings
 @text 境界スクロール設定
