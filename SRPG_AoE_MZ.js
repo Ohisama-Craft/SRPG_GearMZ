@@ -9,6 +9,7 @@
  * @target MZ
  * @plugindesc SRPG area-of-effect skills, edited by OhisamaCraft.
  * @author Dr. Q + アンチョビ, Boomy, Shoukang
+ * @base SRPG_core_MZ
  * 
  * @param AoE Color
  * @desc CSS Color for AoE squares
@@ -63,10 +64,12 @@
  * Note: SRPG_AreaAttack and SRPG_AoE define many of the same features in
  * different ways, and are incompatible if you try to use both.
  * 
- * When using an AoE skill, you can target an empty cell as long as there is at
- * least one valid target within the area
- * AI units won't make use of this, and will always try to target a unit
- * directly, catching other targets by coincidence
+ * When using an AoE skill, you can target an empty cell as long as there is at least 
+ * one valid target within the area. AI units (such as auto-controlled actors or enemies) 
+ * will not use this feature and will always try to target a unit directly, 
+ * potentially hitting other targets within the area by chance. 
+ * However, if you use the SRPG_AIControl plugin, 
+ * AI units will also be able to target empty cells.
  * 
  * By default, AI units are not allowed to use AoE effects with a minimum range
  * of 1 or more because they don't understand how to aim them, but other
@@ -77,7 +80,8 @@
  * skill if it has an AoE. If you want to modify action times manually, use
  * ._SRPGActionTimes += X instead.
  * 
- * AoE is ignored in the counter action (action by the defender). only fights against the attacker.
+ * AoE is ignored in the counter action (action by the defender). 
+ * only fights against the attacker.
  * 
  * Skill / item notetags:
  * <srpgAreaRange:x>    creates an AoE of size x
@@ -183,16 +187,38 @@
  *    1   1
  *  2   2   2
  * 
- * allActor - all actors within range
- * <srpgAreaRange:x> must be set to 1 or greater.
+ * allActor - All actors on the map
  * 
- * allEnemy - All enemies within range
- * <srpgAreaRange:x> must be set to 1 or greater.
+ * allEnemy - All enemies on the map
  * 
- * Note: allActor, allEnemy directly specifies Actor and Enemy (unlike Friend, opponent).
- * Therefore, it is necessary to create different skills for Actor and Enemy.
- * Actor attacks Enemy -> skill with allEnemy in the tag
- * Enemy attacks Actor -> allActor tag
+ * allFriend - All allied units on the map (if actors, then actors)
+ * 
+ * allOpponent - All opposing units on the map (if actors, then enemies)
+ * 
+ * When using allActor, allEnemy, allFriend, or allOpponent to target the entire group, 
+ * <srpgAreaRange:x> must be set to 1 or higher.
+ * 
+ * TIPS
+ * - How to create a skill that targets the entire map:
+ * Set <srpgAreaRange:x> to 1 or higher and combine it with 
+ * allActor, allEnemy, allFriend, or allOpponent. 
+ * In versions after Ver.1.18Q, there is no need to combine this with <specialRange:X>.
+ * 
+ * Note:
+ * allActor and allEnemy directly specify actors and enemies, 
+ * while allFriend and allOpponent specify allied or opposing factions.
+ * 
+ * - How to create a skill that targets the area around the user:
+ * In versions prior to Ver.1.18Q, setting <srpgAreaType:y> to allActor or allEnemy 
+ * allowed the skill's range to act as the AoE range directly. 
+ * However, this feature was removed in Ver.1.18Q and later. 
+ * To create a skill that targets the area around the user, 
+ * design it as an AoE skill with a range of 0.
+ * 
+ * When targeting opposing factions (opponent):
+ * Since it is necessary to target an empty cell, 
+ * AI units (auto-controlled actors or enemies) will need to use the SRPG_AIControl plugin 
+ * to accurately use this feature.
  *
  * Script calls for advanced users:
  *  yourEvent.battlersNear(size, minSize, 'shape', [direction])
@@ -216,7 +242,6 @@
  * 2. If you use AGI attack, AoE skill will hit every target first, then targets will do counter attacks.
  *
  * Important Tips:
- * With this plugin, it's necessary to set skill target to all enemies/friends to make AoEs work properly.
  * If you allow surrounding and you use dynamic motion, actor sprite priority may become weird 
  * while casting skills, to avoid this, set the plugin parameter 'usePriority' in dynamic motion to false.
  * Once you find anything weird, try to turn of this plugin and see if it happens again. 
@@ -256,6 +281,7 @@
  * @target MZ
  * @plugindesc SRPG戦闘で範囲攻撃（スキル）を実装します(SRPG_gearMV用)
  * @author Dr. Q + アンチョビ, Boomy, Shoukang, おひさまクラフト
+ * @base SRPG_core_MZ
  * 
  * @param AoE Color
  * @desc 範囲表示のための CSS Color を設定します
@@ -312,8 +338,9 @@
  * 
  * AoEスキルを使用する場合、エリア内に少なくとも1つの有効なターゲットがある限り、
  * 空のセルをターゲットにすることができます。
- * AIユニット（自動行動アクターやエネミー）はこれを利用せず、常にユニットを直接ターゲットにしようとし、
- * 偶然に他のターゲットを範囲内に巻き込みます（SRPG_AIControlを併用しない場合）。
+ * AIユニット（自動行動アクターやエネミー）はこれを利用せず、
+ * 常にユニットを直接ターゲットにしようとし、偶然に他のターゲットを範囲内に巻き込みます
+ * （SRPG_AIControlを併用する場合は、AIユニットも空のセルをターゲットに出来ます）。
  * 
  * デフォルトでは、AIユニットは、照準を合わせる方法がわからないため、
  * 最小範囲が1以上のAoEエフェクトを使用しません。
@@ -430,18 +457,37 @@
  *    1   1
  *  2   2   2
  * 
- * allActor - 射程範囲内のすべてのアクター
+ * allActor - マップ上の全てのアクター
+ * 
+ * allEnemy - マップ上の全てのエネミー
+ * 
+ * allFriend - マップ上の全ての味方陣営のユニット（アクターであればアクター）
+ * 
+ * allOpponent - マップ上の全ての対立陣営のユニット（アクターであればエネミー）
+ * 
+ * 全体をターゲットとするallActor, allEnemy, allFriend, allOpponentは、
  * <srpgAreaRange:x> は 1 以上に設定してください。
  * 
- * allEnemy - 射程範囲内のすべてのエネミー
- * <srpgAreaRange:x> は 1 以上に設定してください。
+ * TIPS
+ * - 全体スキルの作成方法
+ * <srpgAreaRange:x>を 1 以上に設定し、
+ * allActor, allEnemy, allFriend, allOpponentを組み合わせます。
+ * Ver.1.18Q以降のバージョンでは<specialRange:X>と組みわせる必要はありません。
  * 
- * 注：allActor, allEnemyは、アクターとエネミーを直接指定します（Friend, opponentとは違います）。
- * 　　そのため、アクターとエネミーで異なるスキルを制作する必要があります。
- * 　　・アクターがエネミーを攻撃する→allEnemyをタグに記述したスキル
- * 　　・エネミーがアクターを攻撃する→allActorをタグに記述したスキル
+ * allActor, allEnemyは、アクターとエネミーを直接指定することに注意してください。
+ * allFriend, allOpponentは味方陣営・対立陣営を指定できます。
  *
- * 慣れた人向け　スクリプトで使用できるコマンド:
+ * - 自分の周囲を対象とするスキルの作成方法
+ * Ver.1.18Q以前のバージョンでは、<srpgAreaType:y>をallActor, allEnemyにすると
+ * 射程範囲をそのままAoE範囲とすることが出来ましたが、
+ * Ver.1.18Q以降ではこの機能が廃止されました。
+ * 自分の周囲を対象とするスキルは、射程 0 のAoEスキルとして作成します。
+ * 
+ * opponent（対立陣営）を対象にする場合、空のセルをターゲットにする必要があるため、
+ * AIユニット（自動行動アクターやエネミー）が正確に使用するためには
+ * SRPG_AIControlを併用する必要があります。
+ * 
+ * - 慣れた人向け:スクリプトで使用できるコマンド:
  *  yourEvent.battlersNear(size, minSize, 'shape', [direction])
  *  yourEvent.enemiesNear(size, minSize, 'shape', [direction])
  *  yourEvent.actorsNear(size, minSize, 'shape', [direction])
@@ -463,7 +509,6 @@
  * 2. 敏捷に応じて行動する場合でも、AoEスキルは始めにターゲット全体に使用され、次いでターゲットが応戦します。
  *
  * 重要なTips:
- * このプラグインでは、AoEを正しく動作させるため、スキルの範囲をすべての敵/味方に設定する必要があります。
  * 周囲を囲むことを許可してdynamic motion.jsを使用すると、アクターのスプライトの優先順位がおかしくなることがあります。
  * これを避けるには、dynamic motionのプラグインパラメータ'usePriority'をfalseに設定します。
  * 不具合が生じた場合は、いったんこのプラグインをOFFにして問題が再現されるか確認してください。
@@ -640,7 +685,7 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
 	// modified by OhisamaCraft
 	Game_Temp.prototype.inArea = function(event) {
 		if (!this._activeAoE || this._activeAoE.size <= 0) return false;
-
+		
 		// all tiles in skill range
 		if ((event.isType() === 'actor' && this._activeAoE.shape === 'allactor') ||
 			(event.isType() === 'enemy' && this._activeAoE.shape === 'allenemy')) {
@@ -755,6 +800,7 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
 			if (dy > $gameMap.height() / 2) dy -= $gameMap.height();
 			if (dy < -$gameMap.height() / 2) dy += $gameMap.height();
 		}
+
 		return $gameMap.inArea(dx, dy, size, minSize, shape, dir);
 	};
 
@@ -902,14 +948,14 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
 
 	// highlight the area of effect for an AoE
 	Game_Temp.prototype.showArea = function(x, y, dir) {
-		var unit = $gameTemp.activeEvent();
-		var actor = $gameSystem.EventToUnit(unit.eventId())[1];
+		const unit = $gameTemp.activeEvent();
+		const actor = $gameSystem.EventToUnit(unit.eventId())[1];
 		if (!actor) return;
-		var skill = actor.currentAction();
+		const skill = actor.currentAction();
 		if (!skill) return;
-		var size = skill.area();
-		var minSize = skill.minArea();
-		var shape = skill.areaType();
+		const size = skill.area();
+		const minSize = skill.minArea();
+		const shape = this.correctShape(actor, skill.areaType());
 		var dir = dir || unit.dirTo(x, y);
 		this._activeAoE = {
 			x: x, 
@@ -919,6 +965,18 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
 			shape: shape,
 			dir: dir
 		};
+	};
+
+	// To correct the shape
+	Game_Temp.prototype.correctShape = function(actor, shape) {
+		if (actor.isActor()) {
+			if (shape === 'allfriend') return 'allactor';
+			if (shape === 'allopponent') return 'allenemy';
+		} else {
+			if (shape === 'allfriend') return 'allenemy';
+			if (shape === 'allopponent') return 'allactor';
+		}
+		return shape;
 	};
 
 	// clear out the highlighted area
@@ -1020,7 +1078,6 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
 		this.clearAreaTargets();
 		var friends = (user.isActor()) ? 'actor' : 'enemy';
 		var opponents = (user.isActor()) ? 'enemy' : 'actor';
-
 		// check if the targets are limited
 		var limit = skill.areaTargetLimit();
 
@@ -1028,7 +1085,7 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
 		var targets = $gameMap.events().filter(function (event) {
 			if (event.isErased()) return false;
 			if ((event.isType() === friends && skill.isForFriend()) || 
-			(event.isType() === opponents && skill.isForOpponent())) {
+				(event.isType() === opponents && skill.isForOpponent())) {
 				return $gameTemp.inArea(event);
 			}
 		});
@@ -1061,7 +1118,6 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
 				break;
 		}
 		targets = targets.sort(sortFunction);
-
 		// reduce the limit to fit if needed (0 or less means "no limit")
 		if (limit <= 0 || limit > targets.length) limit = targets.length;
 
@@ -1191,15 +1247,16 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
 	};
 
 	Sprite_SrpgAoE.prototype.setAoE = function(x, y, size, minSize, type, dir) {
-		this._posX = x;
-		this._posY = y;
-		this.blendMode = 1;
-
-		if (this._size != size || this._minSize != minSize || this._type != type || this._dir != dir) {
-			this._size = size;
-			this._type = type;
-			this._dir = dir;
-			this.redrawArea(size, minSize, type, dir);
+		if (this._posX != x || this._posY != y) {
+			this._posX = x;
+			this._posY = y;
+			this.blendMode = 1;
+			if (this._size != size || this._minSize != minSize || this._type != type || this._dir != dir) {
+				this._size = size;
+				this._type = type;
+				this._dir = dir;
+				this.redrawArea(size, minSize, type, dir);
+			}
 		}
 	};
 
