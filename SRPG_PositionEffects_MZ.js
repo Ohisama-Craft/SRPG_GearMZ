@@ -9,6 +9,7 @@
  * @target MZ
  * @plugindesc SRPG extension for movement and positioning skills, edited by OhisamaCraft.
  * @author Dr. Q
+ * @base SRPG_core_MZ
  * 
  * @param cellTargetUnavailableRegion
  * @desc set regions that cannot be selected by cell target. If set to 0, no regions will be specified.
@@ -98,6 +99,7 @@
  * @target MZ
  * @plugindesc SRPGで使用できる移動や位置替えスキルを使用可能にします（おひさまクラフトによる改変）
  * @author Dr. Q
+ * @base SRPG_core_MZ
  * 
  * @param cellTargetUnavailableRegion
  * @desc cellTargetで選択できないRegionを設定します。天井タイル部分などに利用できます。0 の場合は設定しません。
