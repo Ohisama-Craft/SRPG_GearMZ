@@ -10,6 +10,10 @@
  * @target MZ
  * @plugindesc This plugin allows you to create Aura skills for SRPG battle. Place it below all SRPG plugins for best compatibility, edited by OhisamaCraft.
  * @author Shoukang
+ * @base SRPG_core_MZ
+ * @orderAfter SPPG_AoE_MZ
+ * @orderAfter SRPG_ShowAoERange_MZ
+ * @orderAfter SRPG_BattleUI_MZ
  * 
  * @param max range
  * @desc This is the max range for Aura detection, shape is square. This range should equal to your largest Aura range.
@@ -95,6 +99,10 @@
  * @target MZ
  * @plugindesc SRPG戦闘にて「オーラ」スキルを使用可能にするプラグインです。どのSRPGプラグインよりも下に配置してください。（おひさまクラフトによる改変）
  * @author Shoukang
+ * @base SRPG_core_MZ
+ * @orderAfter SPPG_AoE_MZ
+ * @orderAfter SRPG_ShowAoERange_MZ
+ * @orderAfter SRPG_BattleUI_MZ
  * 
  * @param max range
  * @desc オーラの最大有効範囲（形状は正方形）。この射程は最大オーラ射程と一致している必要があります。
