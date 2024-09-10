@@ -9,7 +9,7 @@
  * @target MZ
  * @plugindesc SRPG move path indicator, edited by OhisamaCraft.
  * @author Dr. Q
- * 
+ * @base SRPG_core_MZ
  *
  * @param Path Blend Mode
  * @desc Blend mode for the move path
@@ -71,7 +71,7 @@
  * @target MZ
  * @plugindesc SRPG戦闘でアクターの移動経路を表示します。おひさまクラフトによる改変あり。
  * @author Dr. Q
- * 
+ * @base SRPG_core_MZ
  *
  * @param Path Blend Mode
  * @desc 移動経路の画像のブレンドモード
