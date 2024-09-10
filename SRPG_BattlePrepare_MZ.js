@@ -11,6 +11,7 @@
  * @target MZ
  * @plugindesc Add battle Prepare phase at the beginning of SRPG battle, edited by OhisamaCraft.
  * @author Shoukang
+ * @base SRPG_core_MZ
  *
  * @param disable actor prepare command
  * @desc Can only add or remove actor from formation command if disabled.
@@ -111,6 +112,7 @@
  * @target MZ
  * @plugindesc SRPG戦闘開始前に戦闘準備フェイズを追加します（おひさまクラフトによる改変）。
  * @author Shoukang
+ * @base SRPG_core_MZ
  *
  * @param disable actor prepare command
  * @desc 無効にした場合、ユニット選択コマンドからのみアクターを追加/削除できるようになります。
@@ -297,7 +299,7 @@ const pluginName = "SRPG_BattlePrepare_MZ";
         if (actor_unit && event) {
             actor_unit.initTp(); 
             actor_unit.setSrpgEventId(event.eventId()); // バトラー情報にイベントIDを入れておく
-            var bitmap = ImageManager.loadFace(actor_unit.faceName()); 
+            ImageManager.loadFace(actor_unit.faceName()); 
             $gameSystem.setEventToUnit(event.eventId(), 'actor', actor_unit.actorId());
             event.setType('actor');
             var xy = event.makeAppearPoint(event, event.posX(), event.posY(), actor_unit.srpgThroughTag());
@@ -508,7 +510,7 @@ const pluginName = "SRPG_BattlePrepare_MZ";
             }
             this.drawActorFace(actor, rect.x + 1, rect.y + 1, width, height);
             if ($gameParty.inLockedActorList(actor.actorId())){
-                this.drawIcon(_lockIconIndex, ImageManager.faceWidth - ImageManager.iconHeight - 1, rect.y + rect.height - ImageManager.iconHeight - 1)             
+                this.drawIcon(_lockIconIndex, width - ImageManager.iconHeight, rect.y + height - ImageManager.iconHeight)             
             }
             this.changePaintOpacity(true);
         } else {
@@ -803,6 +805,7 @@ const pluginName = "SRPG_BattlePrepare_MZ";
         this.setAllEventType(); //イベントタイプの設定
         this.setSrpgActors(); //アクターデータの作成
         this.setSrpgEnemys(); //エネミーデータの作成
+        this.setSrpgGuestActors(); // ゲストアクターデータの作成
         $gameMap.setEventImages();   // ユニットデータに合わせてイベントのグラフィックを変更する
         this.runBattleStartEvent(); // ゲーム開始時の自動イベントを実行する
         $gameVariables.setValue(_turnVarID, 1); //ターン数を初期化する
@@ -948,8 +951,10 @@ const pluginName = "SRPG_BattlePrepare_MZ";
                 $gameTemp.pushSrpgEventList(event);
             }
             if (event.isType() === 'actor' && !event.isErased()) {
-                var actor = $gameSystem.EventToUnit(event.eventId());
-                if (actor[1]) $gameSystem.pushSrpgAllActors(event.eventId()); //refresh SrpgAllActors list
+                if (event.event().meta.type !== 'guest') {
+                    var actor = $gameSystem.EventToUnit(event.eventId());
+                    if (actor[1]) $gameSystem.pushSrpgAllActors(event.eventId()); //refresh SrpgAllActors list
+                }
             } else if (event.isType() === 'actor' && event.isErased()) event.setType('');
         });
         $gameTemp.clearMoveTable();
