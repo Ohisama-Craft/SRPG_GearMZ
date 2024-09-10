@@ -9,6 +9,10 @@
  * @target MZ
  * @plugindesc SRPG advanced AI (v0.9), edited by OhisamaCraft.
  * @author Dr. Q
+ * @base SRPG_core_MZ
+ * @orderAfter SRPG_AoE_MZ
+ * @orderAfter SRPG_RangeControl_MZ
+ * @orderAfter SRPG_PositionEffects_MZ
  * 
  * @param Target Formula
  * @desc Default formula for picking a target
@@ -204,6 +208,10 @@
  * @target MZ
  * @plugindesc SRPG強化AI (v0.9)、おひさまクラフトによる改変。
  * @author Dr. Q
+ * @base SRPG_core_MZ
+ * @orderAfter SRPG_AoE_MZ
+ * @orderAfter SRPG_RangeControl_MZ
+ * @orderAfter SRPG_PositionEffects_MZ
  * 
  * @param Target Formula
  * @desc 対象選択のデフォルト式。最も高い値が選択されます。
@@ -219,8 +227,8 @@
  * ============================================================================
  * 本プラグインは試験的に運用されています！
  *
- * SRPG_RangeControlが必要になります。このプラグインをその下に配置してください。
- * SRPG_AoEやSRPG_PositionEffectsを使用している場合、やはり本プラグインはそれら
+ * SRPG_RangeControl_MZが必要になります。このプラグインをその下に配置してください。
+ * SRPG_AoE_MZやSRPG_PositionEffects_MZを使用している場合、やはり本プラグインはそれら
  * の下に配置してください。
  *
  * AIにanyTargetおよびAoEスキルを使わせることが可能になり、敵やアクターごとの挙動
@@ -693,7 +701,7 @@
 		if (!user || !event || !action || !action.item()) return null;
 
 		// track whether this is an AoE effect or not
-		var isAoE = (action.area && action.area() > 0);
+		const isAoE = (action.area && action.area() > 0);
 
 		// skills that can only affect yourself
 		if (user.srpgSkillRange(action.item()) <= 0 && !isAoE) {
@@ -755,7 +763,7 @@
 					var pos = posList[i];
 					var r = action.area();
 					var mr = action.minArea();
-					var t = action.areaType();
+					var t = $gameTemp.correctShape(user, action.areaType());
 					var d = $gameMap.dirBetween(pos.x, pos.y, x, y);
 					var priority = false;
 
