@@ -127,7 +127,7 @@
   var coreParameters = PluginManager.parameters('SRPG_core_MZ');
 	var _turnVarID = Number(coreParameters['turnVarID'] || 3);
 
-  var battlePrepareParameters = PluginManager.parameters('SRPG_BattlePrepare');
+  var battlePrepareParameters = PluginManager.parameters('SRPG_BattlePrepare_MZ');
 	var _lockIconIndex = Number(battlePrepareParameters['lockIconIndex']|| 195);
 
 // ==============================================================================
