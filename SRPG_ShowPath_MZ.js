@@ -203,13 +203,11 @@ Sprite_SrpgMovePath.prototype.constructor = Sprite_SrpgMovePath;
 	}
 
 	// clear the route/AoE when you cancel movement/targeting
-	var _updateCallMenu = Scene_Map.prototype.updateCallMenu;
-	Scene_Map.prototype.updateCallMenu = function() {
-		_updateCallMenu.call(this);
-		if ($gameSystem.isSRPGMode() && (Input.isTriggered('cancel') || TouchInput.isCancelled())) {
-			if ($gameSystem.isSubBattlePhase() === 'normal') $gameTemp.clearRoute();
-		}
-	};
+	const _srpg_showPath_srpgCancelActorMove = Scene_Map.prototype.srpgCancelActorMove;
+	Scene_Map.prototype.srpgCancelActorMove = function(){
+		_srpg_showPath_srpgCancelActorMove.call(this);
+		$gameTemp.clearRoute();
+    }
 
 	// restore the route when you cancel the actor command
 	var _selectPreviousActorCommand = Scene_Map.prototype.selectPreviousActorCommand;
