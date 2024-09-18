@@ -279,7 +279,7 @@
 
 /*:ja
  * @target MZ
- * @plugindesc SRPG戦闘で範囲攻撃（スキル）を実装します(SRPG_gearMV用)
+ * @plugindesc SRPG戦闘で範囲攻撃（スキル）を実装します(SRPG_gearMZ用)
  * @author Dr. Q + アンチョビ, Boomy, Shoukang, おひさまクラフト
  * @base SRPG_core_MZ
  * 
@@ -923,16 +923,6 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
 		if ($gameSystem.positionInRange(x, y)) {
 			$gameTemp.showArea(x, y);
 		}
-	};
-
-	// clear the AoE when you cancel targeting
-	var _updateCallMenu = Scene_Map.prototype.updateCallMenu;
-	Scene_Map.prototype.updateCallMenu = function() {
-		if ($gameSystem.isSRPGMode() && $gameSystem.isSubBattlePhase() === 'actor_target' &&
-		(Input.isTriggered('cancel') || TouchInput.isCancelled())) {
-			$gameTemp.clearArea();
-		}
-		_updateCallMenu.call(this);
 	};
 
 	// check if the skill currently selected has an AoE
