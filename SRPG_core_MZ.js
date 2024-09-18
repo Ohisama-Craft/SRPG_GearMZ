@@ -10659,14 +10659,58 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
 
     // キャンセルキー、その他のキーの実行を止める場合
     Scene_Map.prototype.srpgCanNotUpdateCallMenu = function(){
-        return ($gameSystem.srpgWaitMoving() == true ||
-        $gameTemp.isAutoMoveDestinationValid() == true ||
-        //$gameSystem.isSubBattlePhase() === 'status_window' ||
-        $gameSystem.isSubBattlePhase() === 'actor_command_window' ||
-        $gameSystem.isSubBattlePhase() === 'battle_window' ||
-        $gameSystem.isSubBattlePhase() === 'invoke_action' ||
-        $gameSystem.isSubBattlePhase() === 'after_battle' ||
-        $gameSystem.isBattlePhase() !== 'actor_phase' )
+        if ($gameSystem.srpgWaitMoving() === true) return true;
+        if ($gameTemp.isAutoMoveDestinationValid() === true) return true;
+        if ($gameSystem.isBattlePhase() !== 'actor_phase') return true;
+        if ($gameSystem.isSubBattlePhase() === 'actor_command_window') return true;
+        if ($gameSystem.isSubBattlePhase() === 'battle_window') return true;
+        if ($gameSystem.isSubBattlePhase() === 'invoke_action') return true;
+        if ($gameSystem.isSubBattlePhase() === 'after_battle') return true;
+        return false;
+    }
+
+    // ステータスウィンドウを閉じる処理
+    Scene_Map.prototype.closeStatusWindowInUpdateCallMenu = function(){
+        if ($gameSystem.isSubBattlePhase() === 'status_window' && this.isMenuCalled()) {
+            $gameSystem.clearSrpgStatusWindowNeedRefresh();
+            SoundManager.playCancel();
+            $gameTemp.clearActiveEvent();
+            $gameSystem.setSubBattlePhase('normal');
+            $gameTemp.clearMoveTable();
+            return true;
+        }
+        return false;
+    }
+
+    // LRボタンが押された時の処理
+    Scene_Map.prototype.triggerdLRInUpdateCallMenu = function(){
+        if ($gameSystem.isSubBattlePhase() === 'normal') {
+            if (Input.isTriggered('pageup')) {
+                $gameSystem.getNextLActor();
+                return true;
+            } else if (Input.isTriggered('pagedown')) {
+                $gameSystem.getNextRActor();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // 各種キャンセルの処理
+    Scene_Map.prototype.triggerdCancelInUpdateCallMenu = function(){
+        if (Input.isTriggered('cancel') || TouchInput.isCancelled()) {
+            // 移動状態の時
+            if ($gameSystem.isSubBattlePhase() === 'actor_move') {
+                this.srpgCancelActorMove();
+                return true;
+            }
+            // 対象選択状態の時
+            if ($gameSystem.isSubBattlePhase() === 'actor_target') {
+                this.srpgCancelActorTarget();
+                return true;
+            }
+        }
+        return false;
     }
 
     // アクターの移動処理キャンセル
@@ -10679,63 +10723,51 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
         $gameTemp.clearMoveTable();
     }
 
-    // サブフェーズの状況に応じてキャンセルキーやその他のキーの処理を実行する
-    const _SRPG_SceneMap_updateCallMenu = Scene_Map.prototype.updateCallMenu;
-    Scene_Map.prototype.updateCallMenu = function() {
-        if ($gameSystem.isSRPGMode()) {
-            // 自動で動いている時は処理を止める
-            if (this.srpgCanNotUpdateCallMenu()) {
-                this.menuCalling = false;
-                return;
-            }
-            // ステータスウィンドウの表示時
-            if ($gameSystem.isSubBattlePhase() === 'status_window' && this.isMenuCalled()) {
-                $gameSystem.clearSrpgStatusWindowNeedRefresh();
-                SoundManager.playCancel();
-                $gameTemp.clearActiveEvent();
-                $gameSystem.setSubBattlePhase('normal');
-                $gameTemp.clearMoveTable();
-                return true;
-            }
-            // LRボタンが押された時にユニットを順番に選択する
-            if ($gameSystem.isSubBattlePhase() === 'normal') {
-                if (Input.isTriggered('pageup')) {
-                    $gameSystem.getNextLActor();
-                } else if (Input.isTriggered('pagedown')) {
-                    $gameSystem.getNextRActor();
-                }
-            }
-            // 移動状態の時はキャンセルの処理をする
-            if ($gameSystem.isSubBattlePhase() === 'actor_move') {
-                if (Input.isTriggered('cancel') || TouchInput.isCancelled()) {
-                    this.srpgCancelActorMove();
-                }
-            // 対象選択状態の時はキャンセルの処理をする
-            } else if ($gameSystem.isSubBattlePhase() === 'actor_target') {
-                if (Input.isTriggered('cancel') || TouchInput.isCancelled()) {
-                    SoundManager.playCancel();
-                    this.reSetMoveRangeTable();
-                    $gameSystem.setSubBattlePhase('actor_command_window');
-                }
-            // その他の時はメニュー画面を呼び出す
-            } else {
-                _SRPG_SceneMap_updateCallMenu.call(this);
-            }
-        } else {
-            _SRPG_SceneMap_updateCallMenu.call(this);
-        }
-    };
+    // アクターの対象選択処理キャンセル
+    Scene_Map.prototype.srpgCancelActorTarget = function(){
+        SoundManager.playCancel();
+        this.reSetMoveRangeTable();
+        $gameSystem.setSubBattlePhase('actor_command_window');
+    }
 
     // キャンセルなどの場合に移動＋射程範囲を再表示する
     Scene_Map.prototype.reSetMoveRangeTable = function() {
-        const event = $gameTemp.activeEvent();
-        const battlerArray = $gameSystem.EventToUnit(event.eventId());
+        var event = $gameTemp.activeEvent();
+        var battlerArray = $gameSystem.EventToUnit(event.eventId());
         $gameSystem.srpgMakeMoveTableOriginalPos(event);
         $gameTemp.setResetMoveList(true);
         $gameSystem.setSrpgActorCommandWindowNeedRefresh(battlerArray);
         $gameTemp.clearArea(); // clear AoE
     };
 
+    // 追加の処理
+    Scene_Map.prototype.addFunctionInUpdateCallMenu = function(){
+        return false;
+    }
+
+    // サブフェーズの状況に応じてキャンセルキーやその他のキーの処理を実行する
+    const _SRPG_SceneMap_updateCallMenu = Scene_Map.prototype.updateCallMenu;
+    Scene_Map.prototype.updateCallMenu = function() {
+        if ($gameSystem.isSRPGMode()) {
+            // 自動で動いている時はメニュー画面の呼び出しを止める
+            if (this.srpgCanNotUpdateCallMenu()) {
+                this.menuCalling = false;
+                return;
+            }
+            // ステータスウィンドウを閉じる処理
+            if (this.closeStatusWindowInUpdateCallMenu()) return;
+            // LRボタンが押された時の処理
+            if (this.triggerdLRInUpdateCallMenu()) return;
+            // 各種キャンセルの処理
+            if (this.triggerdCancelInUpdateCallMenu()) return;
+            // 追加の処理
+            if (this.addFunctionInUpdateCallMenu()) return;
+            // メニュー画面の呼び出し
+            _SRPG_SceneMap_updateCallMenu.call(this);
+        } else {
+            _SRPG_SceneMap_updateCallMenu.call(this);
+        }
+    };
 
     //----------------------------------------------------------------
     // 更新
