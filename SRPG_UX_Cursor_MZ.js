@@ -351,34 +351,42 @@
 				this.isMenuCalled());
 	};
 
-	// cancel movement or target, plus quick targeting
-	const _SRPG_UXCursor_updateCallMenu = Scene_Map.prototype.updateCallMenu;
-	Scene_Map.prototype.updateCallMenu = function() {
-		if ($gameSystem.isSRPGMode() && !$gameSystem.srpgWaitMoving()) {
-			// return cursor when deselecting
-			if (this.isReturnCursorDeselecting()) {
-				var event = $gameTemp.activeEvent();
-				$gamePlayer.slideTo(event.posX(), event.posY());
+	// LRボタンが押された時の処理
+	const _srpg_UXCursor_triggerdLRInUpdateCallMenu = Scene_Map.prototype.triggerdLRInUpdateCallMenu;
+    Scene_Map.prototype.triggerdLRInUpdateCallMenu = function(){
+		// page through valid selections
+		if (Input.isTriggered('pagedown')) {
+			if (moveSwitch && $gameSystem.isSubBattlePhase() === 'actor_move') {
+				$gameSystem.getNextRActor();
+				return true;
 			}
-			// page through valid selections
-			if (Input.isTriggered('pagedown')) {
-				if (moveSwitch && $gameSystem.isSubBattlePhase() === 'actor_move') {
-					$gameSystem.getNextRActor();
-				}
-				if (quickTarget && ($gameSystem.isSubBattlePhase() === 'actor_target' || $gameSystem.isSubBattlePhase() === 'actor_targetArea')) {
-					$gameSystem.getNextRTarget();
-				}
-			} else if (Input.isTriggered('pageup')) {
-				if (moveSwitch && $gameSystem.isSubBattlePhase() === 'actor_move') {
-					$gameSystem.getNextLActor();
-				}
-				if (quickTarget && ($gameSystem.isSubBattlePhase() === 'actor_target' || $gameSystem.isSubBattlePhase() === 'actor_targetArea')) {
-					$gameSystem.getNextLTarget();
-				}
+			if (quickTarget && ($gameSystem.isSubBattlePhase() === 'actor_target' || $gameSystem.isSubBattlePhase() === 'actor_targetArea')) {
+				$gameSystem.getNextRTarget();
+				return true;
+			}
+		} else if (Input.isTriggered('pageup')) {
+			if (moveSwitch && $gameSystem.isSubBattlePhase() === 'actor_move') {
+				$gameSystem.getNextLActor();
+				return true;
+			}
+			if (quickTarget && ($gameSystem.isSubBattlePhase() === 'actor_target' || $gameSystem.isSubBattlePhase() === 'actor_targetArea')) {
+				$gameSystem.getNextLTarget();
+				return true;
 			}
 		}
-		_SRPG_UXCursor_updateCallMenu.call(this);
-	};
+		return _srpg_UXCursor_triggerdLRInUpdateCallMenu.call(this);
+    }
+
+    // 各種キャンセルの処理
+	const _srpg_UXCursor_triggerdCancelInUpdateCallMenu = Scene_Map.prototype.triggerdCancelInUpdateCallMenu;
+    Scene_Map.prototype.triggerdCancelInUpdateCallMenu = function(){
+		// return cursor when deselecting
+		if (this.isReturnCursorDeselecting()) {
+			var event = $gameTemp.activeEvent();
+			$gamePlayer.slideTo(event.posX(), event.posY());
+		}
+		return _srpg_UXCursor_triggerdCancelInUpdateCallMenu.call(this);
+    }
 
 	// If autoselect applies, cancelling the battle preview skips back to the command window
 	const _SRPG_UXCursor_selectPreviousSrpgBattleStart = Scene_Map.prototype.selectPreviousSrpgBattleStart;
