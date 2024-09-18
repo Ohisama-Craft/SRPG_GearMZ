@@ -633,34 +633,51 @@ const pluginName = "SRPG_BattlePrepare_MZ";
 
     // modified by OhisamaCraft
     Scene_Map.prototype.srpgCanNotUpdateCallMenu = function(){
-        return ($gameSystem.isSubBattlePhase() === 'invoke_action' ||
-        $gameSystem.srpgWaitMoving() == true ||
-        $gameTemp.isAutoMoveDestinationValid() == true ||
-        //$gameSystem.isSubBattlePhase() === 'status_window' ||
-        $gameSystem.isSubBattlePhase() === 'actor_command_window' ||
-        $gameSystem.isSubBattlePhase() === 'battle_window' ||
-        $gameSystem.isSubBattlePhase() === 'prepare_command' || //shoukang add new condition: $gameSystem.isSubBattlePhase() === 'prepare_command'
-        ($gameSystem.isBattlePhase() != 'actor_phase' &&
-        $gameSystem.isBattlePhase() != 'battle_prepare')) //shoukang add new condition: $gameSystem.isBattlePhase() != 'battle_prepare'
+        if ($gameSystem.srpgWaitMoving() === true) return true;
+        if ($gameTemp.isAutoMoveDestinationValid() === true) return true;
+        if ($gameSystem.isBattlePhase() !== 'actor_phase' && 
+            $gameSystem.isBattlePhase() !== 'battle_prepare') return true;
+        if ($gameSystem.isSubBattlePhase() === 'actor_command_window') return true;
+        if ($gameSystem.isSubBattlePhase() === 'battle_window') return true;
+        if ($gameSystem.isSubBattlePhase() === 'invoke_action') return true;
+        if ($gameSystem.isSubBattlePhase() === 'after_battle') return true;
+        if ($gameSystem.isSubBattlePhase() === 'prepare_command') return true;
+        return false;
     }
 
-    Scene_Map.prototype.srpgCancelActorMove = function(){
-        SoundManager.playCancel();
-        $gameSystem.setSubBattlePhase('normal');
-        $gameSystem.clearSrpgActorCommandStatusWindowNeedRefresh();
-        $gameParty.clearSrpgBattleActors();
-        $gameTemp.clearActiveEvent();
-        $gameTemp.clearMoveTable();
+    // ステータスウィンドウを閉じる処理
+    const _SRPG_BattlePrepare_closeStatusWindowInUpdateCallMenu = Scene_Map.prototype.closeStatusWindowInUpdateCallMenu;
+    Scene_Map.prototype.closeStatusWindowInUpdateCallMenu = function(){
+        if ($gameSystem.isSubBattlePhase() === 'status_window' && this.isMenuCalled()) {
+            _SRPG_BattlePrepare_closeStatusWindowInUpdateCallMenu.call(this);
+            if ($gameSystem.isBattlePhase() === 'battle_prepare') {
+                $gameTemp.setResetMoveList(true);
+                $gameTemp.srpgMakePrepareTable();
+            }
+            return true;
+        }
+        return false;
     }
 
-    // modified by OhisamaCraft
-    Scene_Map.prototype.srpgCancelActorTarget = function(){
-        SoundManager.playCancel();
-        this.reSetMoveRangeTable();
-        $gameSystem.setSubBattlePhase('actor_command_window');
+    // 追加の処理
+    const _SRPG_BattlePrepare_addFunctionInUpdateCallMenu = Scene_Map.prototype.addFunctionInUpdateCallMenu;
+    Scene_Map.prototype.addFunctionInUpdateCallMenu = function(){
+        //shoukang add exchange position condition
+        if ($gameSystem.isSubBattlePhase() === 'exchange_position') {
+            if (Input.isTriggered('cancel') || TouchInput.isCancelled()) {
+                this.srpgCancelExchangePosition();
+                return true;
+            }
+        }
+        if ($gameSystem.isSrpgPreparePhaseOpenMenu() && !$gameMap.isEventRunning()) {
+            this.callMenu();
+            $gameSystem.setSrpgPreparePhaseOpenMenu(false);
+            return true;
+        }
+        return _SRPG_BattlePrepare_addFunctionInUpdateCallMenu.call(this);
     }
 
-//This is the new condition I add.
+    //This is the new condition I add.
     Scene_Map.prototype.srpgCancelExchangePosition = function() {
         SoundManager.playCancel();
         $gameSystem.clearSrpgPrepareWindowNeedRefresh();
@@ -672,20 +689,6 @@ const pluginName = "SRPG_BattlePrepare_MZ";
         $gameTemp.clearMoveTable();
         $gameTemp.srpgMakePrepareTable();
     }
-
-//drag the origingal updatecallmenu method here so I can rewrite, I can't find any better way.
-    Scene_Map.prototype.updateCallMenu = function() {
-        if (this.isMenuEnabled()) {
-            if (this.isMenuCalled()) {
-                this.menuCalling = true;
-            }
-            if (this.menuCalling && !$gamePlayer.isMoving()) {
-                this.callMenu();
-            }
-        } else {
-            this.menuCalling = false;
-        }
-    };
 
     // メニューの呼び出し許可
     const _SRPG_SceneMap_isMenuEnabled = Scene_Map.prototype.isMenuEnabled;
@@ -707,62 +710,11 @@ const pluginName = "SRPG_BattlePrepare_MZ";
         return _SRPG_SceneMap_isCancelButtonEnabled.call(this);
     };
 
-//This part is too complicated, I reconstruct and add my conditions
-// modified by OhisamaCraft
-    const _SRPG_SceneMap_updateCallMenu = Scene_Map.prototype.updateCallMenu;
-    Scene_Map.prototype.updateCallMenu = function() {
-        if ($gameSystem.isSRPGMode() == true) {
-            if (this.srpgCanNotUpdateCallMenu()) {
-                this.menuCalling = false;
-                return;
-            }
-            if ($gameSystem.isSubBattlePhase() === 'normal') {
-                if (Input.isTriggered('pageup')) {
-                    $gameSystem.getNextLActor();
-                } else if (Input.isTriggered('pagedown')) {
-                    $gameSystem.getNextRActor();
-                }
-            }
-            if ($gameSystem.isSubBattlePhase() === 'actor_move') {
-                if (Input.isTriggered('cancel') || TouchInput.isCancelled()) {
-                    this.srpgCancelActorMove();
-                }
-            } else if ($gameSystem.isSubBattlePhase() === 'actor_target' || $gameSystem.isSubBattlePhase() === 'actor_Interaction') {
-                if (Input.isTriggered('cancel') || TouchInput.isCancelled()) {
-                    this.srpgCancelActorTarget();
-                }
-            } else if ($gameSystem.isSubBattlePhase() === 'exchange_position'){
-            //shoukang add exchange position condition
-                if (Input.isTriggered('cancel') || TouchInput.isCancelled()) {
-                    this.srpgCancelExchangePosition();
-                }
-            } else if ($gameSystem.isSubBattlePhase() === 'status_window' && this.isMenuCalled()) {
-            // ステータスウィンドウの表示時
-                $gameSystem.clearSrpgStatusWindowNeedRefresh();
-                SoundManager.playCancel();
-                $gameTemp.clearActiveEvent();
-                $gameSystem.setSubBattlePhase('normal');
-                $gameTemp.clearMoveTable();
-                if ($gameSystem.isBattlePhase() === 'battle_prepare') {
-                    $gameTemp.setResetMoveList(true);
-                    $gameTemp.srpgMakePrepareTable();
-                }
-            } else if ($gameSystem.isSrpgPreparePhaseOpenMenu() && !$gameMap.isEventRunning()){
-                this.callMenu();
-                $gameSystem.setSrpgPreparePhaseOpenMenu(false);
-            } else _SRPG_SceneMap_updateCallMenu.call(this);
-        } else {
-            _SRPG_SceneMap_updateCallMenu.call(this);
-        }
-    };
-
-
-
-//update prepare command window
-    var _SRPG_MB_SceneMap_update = Scene_Map.prototype.update;
-    Scene_Map.prototype.update = function() {
-        _SRPG_MB_SceneMap_update.call(this);
-        if ($gameSystem.isSRPGMode() && $gameSystem.isBattlePhase() === 'battle_prepare') {
+    //update prepare command window
+    const _SRPG_MB_srpgWindowOpenClose = Scene_Map.prototype.srpgWindowOpenClose;
+    Scene_Map.prototype.srpgWindowOpenClose = function() {
+        _SRPG_MB_srpgWindowOpenClose.call(this);
+        if ($gameSystem.isBattlePhase() === 'battle_prepare') {
             if ($gameTemp.moveList().length === 0 && !$gameMap.isEventRunning()) $gameTemp.srpgMakePrepareTable();
             var flag = $gameSystem.srpgPrepareWindowNeedRefresh();
             if (flag && flag[0]) {
