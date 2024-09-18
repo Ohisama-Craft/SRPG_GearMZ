@@ -300,10 +300,12 @@
 	};
 
 	Game_Temp.prototype.refreshAura = function(userevent) {
-		var user = $gameSystem.EventToUnit(userevent.eventId())[1];
+		const userArray = $gameSystem.EventToUnit(userevent.eventId());
+		if (!userArray) return;
+		const user = userArray[1];
 		user.clearAura();
-		var x = userevent.posX();
-		var y = userevent.posY();
+		const x = userevent.posX();
+		const y = userevent.posY();
 		$gameMap.events().forEach(function (event) {//check all events
 			var dx = x - event.posX();
 			var dy = y - event.posY();
