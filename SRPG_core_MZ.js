@@ -1,7 +1,7 @@
 //=============================================================================
 // SRPG_core_MZ.js -SRPGギアMZ-
-// バージョン      : 1.19 + Q
-// 最終更新日      : 2024/9/18
+// バージョン      : 1.20 + Q
+// 最終更新日      : 2024/10/2
 // 製作            : Tkool SRPG team（有明タクミ、RyanBram、Dr.Q、Shoukang、Boomy）
 // 協力            : アンチョビさん、エビさん、Tsumioさん
 // ベースプラグイン : SRPGコンバータMV（神鏡学斗(Lemon slice), Dr. Q, アンチョビ, エビ, Tsumio）
@@ -549,26 +549,91 @@
  * @text Actor ID
  * @desc Actor for which the event ID is to be obtained. Returns 0 if not in SRPG battle.
  * 
- * @command isUnitHpMpTp
- * @text Get HP/MP/TP of the unit
- * @desc Obtains the HP/MP/TP of the unit with the specified event ID.
+ * @command isUnitParams
+ * @text Retrieve unit parameters.
+ * @desc Retrieve the parameters of the unit specified by the event ID. Values represented as percentages will be returned as integers.
  * @arg variableId
  * @type variable
  * @text stored variable
- * @desc Variables to store HP/MP/TP.
+ * @desc This variable stores the unit's parameters.
  * @arg eventId
  * @type number
  * @text Event ID
- * @desc The event ID of the unit for which you wish to obtain HP/MP/TP(0: Active event, -1: Target event).
+ * @desc This is the event ID of the unit whose parameters you want to retrieve (0: current event in action, -1: target event).
  * @min -1
  * @arg key
  * @type select
- * @text HP/MP/TP
- * @desc Select the value to be retrieved.
- * @option HP
- * @option MP
- * @option TP
- * @default HP
+ * @text parameters
+ * @desc Select the values you want to retrieve.
+ * @option Level
+ * @value level
+ * @option Hit Points
+ * @value hp
+ * @option Magic Points
+ * @value mp
+ * @option Tactical Points
+ * @value tp
+ * @option Maximum Hit Points
+ * @value mhp
+ * @option Maximum Magic Points
+ * @value mmp
+ * @option ATtacK power
+ * @value atk
+ * @option DEFense power
+ * @value def
+ * @option Magic ATtack power
+ * @value mat
+ * @option Magic DeFense power
+ * @value mdf
+ * @option AGIlity
+ * @value agi
+ * @option LUcK
+ * @value luk
+ * @option HIT rate
+ * @value hit
+ * @option EVAsion rate
+ * @value eva
+ * @option CRItical rate
+ * @value cri
+ * @option Critical EVasion rate
+ * @value cev
+ * @option Magic EVasion rate
+ * @value mev
+ * @option Magic ReFlection rate
+ * @value mrf
+ * @option CouNTer attack rate
+ * @value cnt
+ * @option Hp ReGeneration rate
+ * @value hrg
+ * @option Mp ReGeneration rate
+ * @value mrg
+ * @option Tp ReGeneration rate
+ * @value trg
+ * @option TarGet Rate
+ * @value tgr
+ * @option GuaRD effect rate
+ * @value grd
+ * @option RECovery effect rate
+ * @value rec
+ * @option PHArmacology
+ * @value pha
+ * @option Mp Cost Rate
+ * @value mcr
+ * @option Tp Charge Rate
+ * @value tcr
+ * @option Physical Damage Rate
+ * @value pdr
+ * @option Magic Damage Rate
+ * @value mdr
+ * @option Floor Damage Rate
+ * @value fdr
+ * @option EXperience Rate
+ * @value exr
+ * @option SRPG move power
+ * @value move
+ * @option weapon range
+ * @value wRange
+ * @default hp
  * 
  * @command isUnitStateAffected
  * @text Get the unit's state
@@ -979,8 +1044,13 @@
  * 		# Aim at the event/actor with the ID specified by X.
  *
  * - related to objects on the map or event execution
- * 	<type:unitEvent>   
- * 		# The event will be executed when an actor acts on it.
+ * 	<type:unitEvent>
+ *  <type:unitEventForActor>
+ *      # The event will be executed when an actor acts on it.
+ *  <type:unitEventForEnemy>
+ *      # The event will be executed when an enemy acts on it.
+ *  <type:unitEventForAll>
+ *      # The event will be executed when an actor or enemy acts on it.
  * 	<type:playerEvent> 
  * 		# That event will be executed when the decision key is pressed 
  * 		# by the player (cursor).
@@ -1360,6 +1430,9 @@
  * 		# to the specified variable.
  * 	this.isUnitParams(variableId, eventId, key);
  * 		# Returns the parameters of the unit with the specified event ID.
+ *      # The value represented as a percentage will be returned as an integer
+ *      # (originally, the decimal value is multiplied by 100 
+ *      #  to convert it to an integer).
  * 		# key : 'level''hp''mp''tp''mhp''mmp''atk''def''mat''mdf''agi''luk'
  * 		#       'hit''eva''cri''cev''mev''mrf''cnt''hrg''mrg''trg''tgr''grd'
  * 		#       'rec''pha''mcr''tcr''pdr''mdr''fdr''exr''move''wRange'
@@ -2167,26 +2240,91 @@
  * @text アクターID
  * @desc イベントIDを取得したいアクターです。戦闘にいない時は 0 を返します。
  * 
- * @command isUnitHpMpTp
- * @text ユニットのHP/MP/TPを取得
- * @desc 指定したイベントIDのユニットのHP/MP/TPを取得します。
+ * @command isUnitParams
+ * @text ユニットのパラメータを取得
+ * @desc 指定したイベントIDのユニットのパラメータを取得します。% で表される値は整数で返します（小数の値を100倍して整数にします）。
  * @arg variableId
  * @type variable
  * @text 格納変数
- * @desc HP/MP/TPを格納する変数です。
+ * @desc パラメータを格納する変数です。
  * @arg eventId
  * @type number
  * @text イベントID
- * @desc HP/MP/TPを取得したいユニットのイベントIDです(0:行動中のイベント -1:対象のイベント)。
+ * @desc パラメータを取得したいユニットのイベントIDです(0:行動中のイベント -1:対象のイベント)。
  * @min -1
  * @arg key
  * @type select
- * @text HP/MP/TP
+ * @text パラメータ
  * @desc 取得する値を選択します。
+ * @option レベル
+ * @value level
  * @option HP
+ * @value hp
  * @option MP
+ * @value mp
  * @option TP
- * @default HP
+ * @value tp
+ * @option 最大HP
+ * @value mhp
+ * @option 最大MP
+ * @value mmp
+ * @option 攻撃力
+ * @value atk
+ * @option 防御力
+ * @value def
+ * @option 魔法力
+ * @value mat
+ * @option 魔法防御
+ * @value mdf
+ * @option 敏捷性
+ * @value agi
+ * @option 運
+ * @value luk
+ * @option 命中率
+ * @value hit
+ * @option 回避率
+ * @value eva
+ * @option 会心率
+ * @value cri
+ * @option 会心回避率
+ * @value cev
+ * @option 魔法回避率
+ * @value mev
+ * @option 魔法反射率
+ * @value mrf
+ * @option 反撃率
+ * @value cnt
+ * @option HP再生率
+ * @value hrg
+ * @option MP再生率
+ * @value mrg
+ * @option TP再生率
+ * @value trg
+ * @option 狙われ率
+ * @value tgr
+ * @option 防御効果率
+ * @value grd
+ * @option 回復効果率
+ * @value rec
+ * @option 薬の知識
+ * @value pha
+ * @option MP消費率
+ * @value mcr
+ * @option TPチャージ率
+ * @value tcr
+ * @option 物理ダメージ率
+ * @value pdr
+ * @option 魔法ダメージ率
+ * @value mdr
+ * @option 床ダメージ率
+ * @value fdr
+ * @option 経験獲得率
+ * @value exr
+ * @option 移動力
+ * @value move
+ * @option 武器射程
+ * @value wRange
+ * @default hp
  * 
  * @command isUnitStateAffected
  * @text ユニットのステートを取得
@@ -2582,8 +2720,13 @@
  *      #  Xで指定したIDのイベント/アクターを狙います。
  *
  * - マップ上のオブジェクトやイベント実行に関係するもの
- *   <type:unitEvent>   
+ *   <type:unitEvent>
+ *   <type:unitEventForActor>
  *      # そのイベントはアクターがその上で行動した時に実行されるようになります。
+ *   <type:unitEventForEnemy>
+ *      # そのイベントはエネミーがその上で行動した時に実行されるようになります。
+ *   <type:unitEventForAll>
+ *      # そのイベントはアクターまたはエネミーがその上で行動した時に実行されるようになります。
  *   <type:playerEvent> 
  *      # そのイベントはプレイヤー（カーソル）で決定キーを押した時に実行されます。
  *      # 通過できますが、そのうえで行動は出来ません。
@@ -2893,6 +3036,7 @@
  *      # 指定したアクターのイベントIDを指定した変数に返します。
  *   this.isUnitParams(variableId, eventId, key);
  *      # 指定したイベントIDのユニットのパラメータを取得します。
+ *      # % で表される値は整数で返します（本来は小数の値を100倍して整数にします）。
  *      # key : 'level''hp''mp''tp''mhp''mmp''atk''def''mat''mdf''agi''luk'
  *      #       'hit''eva''cri''cev''mev''mrf''cnt''hrg''mrg''trg''tgr''grd'
  *      #       'rec''pha''mcr''tcr''pdr''mdr''fdr''exr''move''wRange'
@@ -3308,18 +3452,8 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
         this.isEventIdActor(Number(args.variableId), Number(args.actorId));
     });
 
-    PluginManager.registerCommand(pluginName, "isUnitHpMpTp", function(args) {
-        switch (args.key) {
-            case 'HP':
-                this.isUnitParams(Number(args.variableId), Number(args.eventId), 'hp');
-                break;
-            case 'MP':
-                this.isUnitParams(Number(args.variableId), Number(args.eventId), 'mp');
-                break;
-            case 'TP':
-                this.isUnitParams(Number(args.variableId), Number(args.eventId), 'tp');
-                break;
-        }
+    PluginManager.registerCommand(pluginName, "isUnitParams", function(args) {
+        this.isUnitParams(Number(args.variableId), Number(args.eventId), args.key);
         return true;
     });
 
@@ -4204,7 +4338,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
 
     // アクターIDから対応するイベントIDを返す
     Game_System.prototype.ActorToEvent = function(actor_id) {
-        var eventId = 0;
+        var eventId = undefined;
         $gameMap.events().forEach(function(event) {
             if (event.isType() === 'actor') {
                 var actor = $gameSystem.EventToUnit(event.eventId())[1];
@@ -7445,64 +7579,64 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
                     $gameVariables.setValue(variableId, battler.luk);
                     break;
                 case 'hit':
-                    $gameVariables.setValue(variableId, battler.hit);
+                    $gameVariables.setValue(variableId, battler.hit * 100);
                     break;
                 case 'eva':
-                    $gameVariables.setValue(variableId, battler.eva);
+                    $gameVariables.setValue(variableId, battler.eva * 100);
                     break;
                 case 'cri':
-                    $gameVariables.setValue(variableId, battler.cri);
+                    $gameVariables.setValue(variableId, battler.cri * 100);
                     break;
                 case 'cev':
-                    $gameVariables.setValue(variableId, battler.cev);
+                    $gameVariables.setValue(variableId, battler.cev * 100);
                     break;
                 case 'mev':
-                    $gameVariables.setValue(variableId, battler.mev);
+                    $gameVariables.setValue(variableId, battler.mev * 100);
                     break;
                 case 'mrf':
-                    $gameVariables.setValue(variableId, battler.mrf);
+                    $gameVariables.setValue(variableId, battler.mrf * 100);
                     break;
                 case 'cnt':
-                    $gameVariables.setValue(variableId, battler.cnt);
+                    $gameVariables.setValue(variableId, battler.cnt * 100);
                     break;
                 case 'hrg':
-                    $gameVariables.setValue(variableId, battler.hrg);
+                    $gameVariables.setValue(variableId, battler.hrg * 100);
                     break;
                 case 'mrg':
-                    $gameVariables.setValue(variableId, battler.mrg);
+                    $gameVariables.setValue(variableId, battler.mrg * 100);
                     break;
                 case 'trg':
-                    $gameVariables.setValue(variableId, battler.trg);
+                    $gameVariables.setValue(variableId, battler.trg * 100);
                     break;
                 case 'tgr':
-                    $gameVariables.setValue(variableId, battler.tgr);
+                    $gameVariables.setValue(variableId, battler.tgr * 100);
                     break;
                 case 'grd':
-                    $gameVariables.setValue(variableId, battler.grd);
+                    $gameVariables.setValue(variableId, battler.grd * 100);
                     break;
                 case 'rec':
-                    $gameVariables.setValue(variableId, battler.rec);
+                    $gameVariables.setValue(variableId, battler.rec * 100);
                     break;
                 case 'pha':
-                    $gameVariables.setValue(variableId, battler.pha);
+                    $gameVariables.setValue(variableId, battler.pha * 100);
                     break;
                 case 'mcr':
-                    $gameVariables.setValue(variableId, battler.mcr);
+                    $gameVariables.setValue(variableId, battler.mcr * 100);
                     break;
                 case 'tcr':
-                    $gameVariables.setValue(variableId, battler.tcr);
+                    $gameVariables.setValue(variableId, battler.tcr * 100);
                     break;
                 case 'pdr':
-                    $gameVariables.setValue(variableId, battler.pdr);
+                    $gameVariables.setValue(variableId, battler.pdr * 100);
                     break;
                 case 'mdr':
-                    $gameVariables.setValue(variableId, battler.mdr);
+                    $gameVariables.setValue(variableId, battler.mdr * 100);
                     break;
                 case 'fdr':
-                    $gameVariables.setValue(variableId, battler.fdr);
+                    $gameVariables.setValue(variableId, battler.fdr * 100);
                     break;
                 case 'exr':
-                    $gameVariables.setValue(variableId, battler.exr);
+                    $gameVariables.setValue(variableId, battler.exr * 100);
                     break;
                 case 'move':
                     $gameVariables.setValue(variableId, battler.srpgMove());
@@ -7611,14 +7745,10 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
             if (battler.isAlive()) {
                 if (!allowDeath && battler.hp <= -value) value = 1 - battler.hp;
                 battler.gainHp(value);
-                if (battler.isDead()) {
-                    const event = $gameMap.event(eventId);
-                    if (!event.isErased()) {
-                        event.erase();
-                        var valueId = battler.isActor() ? _existActorVarID : _existEnemyVarID;
-                        var oldValue = $gameVariables.value(valueId);
-                        $gameVariables.setValue(valueId, oldValue - 1);
-                    }
+                if (battler._result.hpDamage !== 0) {
+                    battler._result.used = true;
+                    battler.srpgShowResults();
+                    battler.slipFloorAddDeath();// 戦闘不能の処理
                 }
             }
         }
@@ -7685,7 +7815,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
         return true;
     };
 
-    // 指定したイベントIDのユニットを戦闘不能にする（逃走などの演出にも可）
+    // 指定したイベントIDのユニットを戦闘不能にする
     // unitAddStateでも可能だが、戦闘不能にする処理は頻用するため別に用意している
     Game_Interpreter.prototype.unitDie = function(eventId) {
         eventId = this.getEventId(eventId);
@@ -7696,6 +7826,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
                 if (battler.isDead()) {
                     const event = $gameMap.event(eventId);
                     if (!event.isErased()) {
+                        this.isActor() ? SoundManager.playActorCollapse() : SoundManager.playEnemyCollapse();
                         event.erase();
                         var valueId = battler.isActor() ? _existActorVarID : _existEnemyVarID;
                         var oldValue = $gameVariables.value(valueId);
@@ -8930,9 +9061,14 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
     // 内容の描画
     Window_SrpgBattleResult.prototype.drawContents = function() {
         const lineHeight = this.lineHeight();
+        const gold = this._rewards.gold;
         this.drawGainExp(6, lineHeight * 0);
-        this.drawGainGold(6, lineHeight * 2);
-        this.drawGainItem(0, lineHeight * 3);
+        if (gold > 0) {
+            this.drawGainGold(6, lineHeight * 2);
+            this.drawGainItem(0, lineHeight * 3);
+        } else {
+            this.drawGainItem(0, lineHeight * 2);
+        }
     };
 
     // 獲得EXPの描画（なめらかなバーの描画に対応）
@@ -8985,13 +9121,11 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
     Window_SrpgBattleResult.prototype.drawGainGold = function(x, y) {
         const gold = this._rewards.gold;
         const width = (this.innerWidth - this.padding * 2) / 2;
-        if (gold > 0) {
-            var unitWidth = Math.min(80, this.textWidth(TextManager.currencyUnit));
-            this.resetTextColor();
-            this.drawText(gold, x, y, width - unitWidth - 6);
-            this.changeTextColor(ColorManager.systemColor());
-            this.drawText(TextManager.currencyUnit, x + this.textWidth(gold) + 6, y, unitWidth);
-        }
+        var unitWidth = Math.min(80, this.textWidth(TextManager.currencyUnit));
+        this.resetTextColor();
+        this.drawText(gold, x, y, width - unitWidth - 6);
+        this.changeTextColor(ColorManager.systemColor());
+        this.drawText(TextManager.currencyUnit, x + this.textWidth(gold) + 6, y, unitWidth);
     }
 
     // 獲得アイテムの描画
@@ -11024,9 +11158,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
         this._logWindow.clear();
         this._logWindow.hide();
         // イベントの実行
-        if ($gameSystem.isBattlePhase() === 'actor_phase' || $gameSystem.isBattlePhase() === 'auto_actor_phase') {
-            this.eventUnitEvent();
-        }
+        this.eventUnitEvent();
         this.eventAfterAction();
     };
 
@@ -11058,13 +11190,24 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
     //----------------------------------------------------------------
     // ユニットイベントの実行
     Scene_Map.prototype.eventUnitEvent = function() {
-        $gameMap.eventsXy($gameTemp.activeEvent().posX(), $gameTemp.activeEvent().posY()).forEach(function(event) {
-            if (event.isType() === 'unitEvent') {
-                if (event.pageIndex() >= 0) event.start();
-                $gameTemp.pushSrpgEventList(event);
-                $gameSystem.pushSearchedItemList([$gameTemp.activeEvent().posX(), $gameTemp.activeEvent().posY()]);
-            }
-        });
+        if ($gameSystem.isBattlePhase() === 'actor_phase' || $gameSystem.isBattlePhase() === 'auto_actor_phase') {
+            $gameMap.eventsXy($gameTemp.activeEvent().posX(), $gameTemp.activeEvent().posY()).forEach(function(event) {
+                if (event.isType() === 'unitEvent' || 
+                    event.isType() === 'unitEventForActor' || event.isType() === 'unitEventForAll') {
+                    if (event.pageIndex() >= 0) event.start();
+                    $gameTemp.pushSrpgEventList(event);
+                    $gameSystem.pushSearchedItemList([$gameTemp.activeEvent().posX(), $gameTemp.activeEvent().posY()]);
+                }
+            });
+        } else if ($gameSystem.isBattlePhase() === 'enemy_phase') {
+            $gameMap.eventsXy($gameTemp.activeEvent().posX(), $gameTemp.activeEvent().posY()).forEach(function(event) {
+                if (event.isType() === 'unitEventForEnemy' || event.isType() === 'unitEventForAll') {
+                    if (event.pageIndex() >= 0) event.start();
+                    $gameTemp.pushSrpgEventList(event);
+                    $gameSystem.pushSearchedItemList([$gameTemp.activeEvent().posX(), $gameTemp.activeEvent().posY()]);
+                }
+            });
+        }  
     };
 
     // 行動前イベントの実行
@@ -11651,9 +11794,9 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
         if (event) { 
             var targetBattlerArray = $gameSystem.EventToUnit(event.eventId());
             // 優先ターゲットが失われている場合、優先ターゲットは設定しない
-            if (!(targetBattlerArray && targetBattlerArray[1].isAlive())) event = null;
+            if (!(targetBattlerArray && targetBattlerArray[1].isAlive())) event = undefined;
         } else {
-            event = null;
+            event = undefined;
         }
         $gameTemp.setSrpgPriorityTarget(event);
     };
@@ -12946,7 +13089,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
 //====================================================================
 
 	// show pop-up for regeneration
-	var _battler_regenerateAll_MB = Game_Battler.prototype.regenerateAll;
+	const _battler_regenerateAll_MB = Game_Battler.prototype.regenerateAll;
 	Game_Battler.prototype.regenerateAll = function() {
 		_battler_regenerateAll_MB.call(this);
 		if ($gameSystem.isSRPGMode() && this._result.hpDamage !== 0) {
@@ -12957,23 +13100,20 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
 	};
 
 	// suppress the screen flash from damage in SRPG mode
-	var _startFlashForDamage_MB = Game_Screen.prototype.startFlashForDamage;
+	const _startFlashForDamage_MB = Game_Screen.prototype.startFlashForDamage;
 	Game_Screen.prototype.startFlashForDamage = function() {
 		if (!$gameSystem.isSRPGMode()) _startFlashForDamage_MB.call(this);
 	};
 
     // スリップ・床ダメージでの戦闘不能処理
     Game_Battler.prototype.slipFloorAddDeath = function() {
-        var event = $gameMap.event(this.srpgEventId());
+        const event = $gameMap.event(this.srpgEventId());
         if (this.isDead() && !event.isErased()) {
+            this.isActor() ? SoundManager.playActorCollapse() : SoundManager.playEnemyCollapse();
             event.erase();
-            if (this.isActor()) {
-            var oldValue = $gameVariables.value(_existActorVarID);
-                $gameVariables.setValue(_existActorVarID, oldValue - 1);
-            } else {
-                var oldValue = $gameVariables.value(_existEnemyVarID);
-                $gameVariables.setValue(_existEnemyVarID, oldValue - 1);
-            }
+            var valueId = this.isActor() ? _existActorVarID : _existEnemyVarID;
+            var oldValue = $gameVariables.value(valueId);
+            $gameVariables.setValue(valueId, oldValue - 1);
         }
     };
 
