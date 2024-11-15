@@ -9,6 +9,7 @@
  * @plugindesc Allow you to summon/enemy/objects during SRPG battle, edited by OhisamaCraft.
  * @author Shoukang
  * @base SRPG_core_MZ
+ * @orderAfter SRPG_core_MZ
  *
  * @param Summon Map Id
  * @desc the map Id for summon events
@@ -166,6 +167,7 @@
  * @plugindesc SRPG戦闘中に敵キャラやオブジェクトを召喚することが可能になります（おひさまクラフトによる改変）。
  * @author Shoukang
  * @base SRPG_core_MZ
+ * @orderAfter SRPG_core_MZ
  *
  * @param Summon Map Id
  * @desc 召喚イベント用のマップID
