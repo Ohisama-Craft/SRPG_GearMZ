@@ -12,6 +12,7 @@
  * @plugindesc Add battle Prepare phase at the beginning of SRPG battle, edited by OhisamaCraft.
  * @author Shoukang
  * @base SRPG_core_MZ
+ * @orderAfter SRPG_core_MZ
  *
  * @param disable actor prepare command
  * @desc Can only add or remove actor from formation command if disabled.
@@ -113,6 +114,7 @@
  * @plugindesc SRPG戦闘開始前に戦闘準備フェイズを追加します（おひさまクラフトによる改変）。
  * @author Shoukang
  * @base SRPG_core_MZ
+ * @orderAfter SRPG_core_MZ
  *
  * @param disable actor prepare command
  * @desc 無効にした場合、ユニット選択コマンドからのみアクターを追加/削除できるようになります。
