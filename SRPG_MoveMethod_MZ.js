@@ -11,6 +11,9 @@
  * @plugindesc More move modes and improved pathfinding that can handle all conditions! , edited by OhisamaCraft. Need SRPG_AIControl_MZ.
  * @author Shoukang
  * @base SRPG_core_MZ
+ * @base SRPG_RangeControl_MZ
+ * @base SRPG_AIControl_MZ
+ * @orderAfter SRPG_core_MZ
  * @orderAfter SRPG_RangeControl_MZ
  * @orderAfter SRPG_AIControl_MZ
  *
@@ -124,6 +127,9 @@
  * @plugindesc 移動モードを追加し、あらゆる条件を考慮するように経路探索を改善します（おひさまクラフトによる改変）。SRPG_AIControl_MZが必要です。
  * @author Shoukang
  * @base SRPG_core_MZ
+ * @base SRPG_RangeControl_MZ
+ * @base SRPG_AIControl_MZ
+ * @orderAfter SRPG_core_MZ
  * @orderAfter SRPG_RangeControl_MZ
  * @orderAfter SRPG_AIControl_MZ
  *
