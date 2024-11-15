@@ -10,6 +10,7 @@
  * @plugindesc SRPG window improvements, edited by OhisamaCraft.
  * @author Dr. Q
  * @base SRPG_core_MZ
+ * @orderAfter SRPG_core_MZ
  *
  * @param Hide No Rewards
  * @desc Don't show the window if you don't get anything
@@ -44,6 +45,11 @@
  * @desc Specify the color of the enemy's status window([R, G, B]). split ','
  * @type string
  * @default 96, -32, -32
+ * 
+ * @param srpgAutoOpenActorCommandStatusWindow
+ * @desc Whether to automatically display the status bar when the cursor is on a unit.(true / false)
+ * @type boolean
+ * @default true
  *
  * @help
  * copyright 2020 SRPG Team. all rights reserved.
@@ -83,6 +89,7 @@
  * @plugindesc SRPGでのウィンドウを改善します（おひさまクラフトによる改変）。
  * @author Dr. Q
  * @base SRPG_core_MZ
+ * @orderAfter SRPG_core_MZ
  *
  * @param Hide No Rewards
  * @desc 何も報酬を入手しなかった場合、ウィンドウを表示しません。
@@ -117,6 +124,11 @@
  * @desc エネミーのステータスウィンドウの色を指定します(R, G, B)。 ',(カンマ)'で区切ります。
  * @type string
  * @default 96, -32, -32
+ * 
+ * @param srpgAutoOpenActorCommandStatusWindow
+ * @desc カーソルが合った時に自動でステータスバーを表示するか。(true / false)
+ * @type boolean
+ * @default true
  *
  * @help
  * copyright 2020 SRPG Team. all rights reserved.
@@ -154,12 +166,13 @@
 (function(){
 	// parameters
 	var parameters = PluginManager.parameters('SRPG_UX_Windows_MZ');
-	var _hideNoReward = !!eval(parameters['Hide No Rewards']);
+	var _hideNoReward = !!eval(parameters['Hide No Rewards'] || true);
 	var _srpgBattleResultWindowCount = Number(parameters['srpgBattleResultWindowCount'] || 90);
-	var _hideSelfTarget = !!eval(parameters['Hide Self Target']);
-	var _srpgChangeStatusWindowColor = !!eval(parameters['srpgChangeStatusWindowColor']);
+	var _hideSelfTarget = !!eval(parameters['Hide Self Target'] || true);
+	var _srpgChangeStatusWindowColor = !!eval(parameters['srpgChangeStatusWindowColor'] || true);
 	var _srpgActorStatusWindowColor = parameters['srpgActorStatusWindowColor'] || "-32, -32, 96";
 	var _srpgEnemyStatusWindowColor = parameters['srpgEnemyStatusWindowColor'] || "96, -32, -32";
+	var _srpgAutoOpenActorCommandStatusWindow = !!eval(parameters['srpgAutoOpenActorCommandStatusWindow'] || true);
 
 	var coreParameters = PluginManager.parameters('SRPG_core_MZ');
 	var _rewardSe = coreParameters['rewardSound'] || 'Item3';
@@ -284,23 +297,25 @@
 		}
 	};
 
+	Window_Base.prototype.setSrpgWindowTone = function(type) {
+		let rgb = [];
+        if (type === 'actor') {
+			rgb = _srpgActorStatusWindowColor.split(',')
+        } else if (type === 'enemy') {
+            rgb = _srpgEnemyStatusWindowColor.split(',')
+        }
+		const r = Number(rgb[0]);
+		const g = Number(rgb[1]);
+		const b = Number(rgb[2]);
+        return [r, g, b, 0];
+	};
+
 	// ●Window_SrpgStatus
     // ユニットのセット
 	const srpgUXWindows_Window_StatusBase_setBattler = Window_SrpgStatus.prototype.setBattler;
     Window_SrpgStatus.prototype.setBattler = function(data, flip) {
 		srpgUXWindows_Window_StatusBase_setBattler.call(this, data, flip);
-		if (this._battler) {
-			let rgb = [];
-            if (this._type === 'actor') {
-				rgb = _srpgActorStatusWindowColor.split(',')
-            } else if (this._type === 'enemy') {
-                rgb = _srpgEnemyStatusWindowColor.split(',')
-            }
-			const r = Number(rgb[0]);
-			const g = Number(rgb[1]);
-			const b = Number(rgb[2]);
-            this._srpgWindowTone = [r, g, b, 0];
-        }
+		if (this._battler) this._srpgWindowTone = this.setSrpgWindowTone(this._type);
         this.refresh();
     };
 
@@ -309,19 +324,110 @@
 	const srpgUXWindows_Window_SrpgBattleStatus_setBattler = Window_SrpgBattleStatus.prototype.setBattler;
     Window_SrpgBattleStatus.prototype.setBattler = function(battler) {
 		srpgUXWindows_Window_SrpgBattleStatus_setBattler.call(this, battler);
-        if (this._battler) {
-			let rgb = [];
-            if (this._type === 'actor') {
-				rgb = _srpgActorStatusWindowColor.split(',')
-            } else if (this._type === 'enemy') {
-                rgb = _srpgEnemyStatusWindowColor.split(',')
-            }
-			const r = Number(rgb[0]);
-			const g = Number(rgb[1]);
-			const b = Number(rgb[2]);
-            this._srpgWindowTone = [r, g, b, 0];
-        }
+        if (this._battler) this._srpgWindowTone = this.setSrpgWindowTone(this._type);
         this.refresh();
+    };
+
+//====================================================================
+// Immediately open the status window when the cursor is on a unit.
+//====================================================================
+	Window_StatusBase.prototype.drawEnemySimpleStatusSrpg = function(enemy, x, y) {
+        const lineHeight = this.lineHeight();
+        const x2 = x + 180;
+        this.drawActorName(enemy, x, y);
+        this.drawEnemyLevel(enemy, x, y + lineHeight * 1);
+        this.drawActorIcons(enemy, x, y + lineHeight * 2);
+        this.drawEnemyClass(enemy, x2, y);
+        this.placeBasicGaugesSrpg(enemy, x2, y + lineHeight);
+    };
+
+	// ●Window_SrpgActorCommandStatus
+	// 初期化
+	const _srpgUxWindows_Window_SrpgActorCommandStatus_initialize = Window_SrpgActorCommandStatus.prototype.initialize;
+    Window_SrpgActorCommandStatus.prototype.initialize = function(rect) {
+        this._type = null;
+		_srpgUxWindows_Window_SrpgActorCommandStatus_initialize.call(this, rect);
+    };
+
+	// ユニットのセット
+	const srpgUXWindows_Window_SrpgActorCommandStatus_setBattler = Window_SrpgActorCommandStatus.prototype.setBattler;
+    Window_SrpgActorCommandStatus.prototype.setBattler = function(battler) {
+		if (battler) {
+			if (battler.isActor() === true) {
+				this._type = 'actor';
+			} else if (battler.isEnemy() === true) {
+				this._type = 'enemy';
+			}
+			this._srpgWindowTone = this.setSrpgWindowTone(this._type);
+		}
+		srpgUXWindows_Window_SrpgActorCommandStatus_setBattler.call(this, battler);
+    };
+
+	// ステータスの描画
+    Window_SrpgActorCommandStatus.prototype.drawItem = function() {
+		if (this._type === 'actor') {
+			this.drawContentsActor();
+		} else if (this._type === 'enemy') {
+			this.drawContentsEnemy();
+		}
+    };
+
+	// アクターのステータスの描画
+    Window_SrpgActorCommandStatus.prototype.drawContentsActor = function() {
+        this.drawActorItemImage();
+        this.drawActorItemStatus();
+    };
+    
+    Window_SrpgActorCommandStatus.prototype.drawActorItemImage = function() {
+        const width = ImageManager.faceWidth;
+        const height = this.fittingHeight(2) - 8;
+        this.drawActorFace(this._battler, 1, 1, width, height);
+    };
+    
+    Window_SrpgActorCommandStatus.prototype.drawActorItemStatus = function() {
+        const x = 180;
+        const y = 0;
+        this.drawActorSimpleStatusSrpg(this._battler, x, y);
+    };
+
+    // エネミーのステータスの描画
+    Window_SrpgActorCommandStatus.prototype.drawContentsEnemy = function() {
+        this.drawEnemyItemImage();
+        this.drawEnemyItemStatus();
+    };
+
+	Window_SrpgActorCommandStatus.prototype.drawEnemyItemImage = function() {
+        const width = ImageManager.faceWidth;
+        const height = this.fittingHeight(2) - 8;
+        this.drawEnemyFace(this._battler, 1, 1, width, height);
+    };
+    
+    Window_SrpgActorCommandStatus.prototype.drawEnemyItemStatus = function() {
+        const x = 180;
+        const y = 0;
+        this.drawEnemySimpleStatusSrpg(this._battler, x, y);
+    };
+
+	// カーソル移動時の処理
+	const srpgUXWindows_Scene_Map_srpgMovementExtension = Scene_Map.prototype.srpgMovementExtension;
+    Scene_Map.prototype.srpgMovementExtension = function() {
+        srpgUXWindows_Scene_Map_srpgMovementExtension.call(this);
+		if (_srpgAutoOpenActorCommandStatusWindow) {
+			if ($gameSystem.isBattlePhase() === 'actor_phase' &&
+				$gameSystem.isSubBattlePhase() === 'normal'){
+				let clearFlag = true;
+				$gameMap.eventsXy($gamePlayer.x, $gamePlayer.y).forEach(function(event) {
+					if (!event.isErased()) {
+						if (event.isType() === 'actor' || event.isType() === 'enemy') {
+							var battlerArray = $gameSystem.EventToUnit(event.eventId());
+							$gameSystem.setSrpgActorCommandStatusWindowNeedRefresh(battlerArray, true);
+							clearFlag = false;
+						}
+					}
+				});
+				if (clearFlag === true) $gameSystem.clearSrpgActorCommandStatusWindowNeedRefresh();
+			}
+		}
     };
 
 //====================================================================
