@@ -1,7 +1,7 @@
 //=============================================================================
 // SRPG_core_MZ.js -SRPGギアMZ-
-// バージョン      : 1.20 + Q
-// 最終更新日      : 2024/10/2
+// バージョン      : 1.21 + Q
+// 最終更新日      : 2024/11/15
 // 製作            : Tkool SRPG team（有明タクミ、RyanBram、Dr.Q、Shoukang、Boomy）
 // 協力            : アンチョビさん、エビさん、Tsumioさん
 // ベースプラグイン : SRPGコンバータMV（神鏡学斗(Lemon slice), Dr. Q, アンチョビ, エビ, Tsumio）
@@ -669,6 +669,10 @@
  * @text Y-coordinate
  * @desc The Y coordinate you want to reference. The upper left corner of the map is (0, 0).
  * @min 0
+ * @arg isUnit
+ * @type boolean
+ * @text is Unit?
+ * @desc Returns the event ID only if it is a unit (actor, enemy, or guest).
  * 
  * @command checkRegionId
  * @text Determines if there is an actor in a given region
@@ -1466,8 +1470,10 @@
  * 		# Disabled if no event is active.
  *
  * === Commands related to getting event and unit coordinates ===
- * 	this.isEventIdXy(variableId, x, y);
- * 		# Get the event ID of the unit at the specified coordinates.
+ * 	this.isEventIdXy(variableId, x, y, isUnit);
+ *      # Retrieves the event ID at the specified coordinates 
+ *      # (isUnit can be true or false). If isUnit is true, 
+ *      # it returns the ID only for actors, enemies, or guests.
  * 	this.checkRegionId(switchId, regionId);
  * 		# Determine if there is an actor unit on the specified region ID.
  *
@@ -1493,7 +1499,6 @@
  *      # Disables the unit with the specified event ID
  *      # It is possible with 'unitAddState', 
  *      # but the process of disabling combat is prepared separately for frequent use.
- *      # Since they disappear from the map, they can be used to stage escapes, etc.
  * 	this.unitRevive(eventId);
  * 		# Revive the unit with the specified event ID.
  * 		# It is possible with 'unitRemoveState', 
@@ -1517,13 +1522,16 @@
  * 
  * === Commands related to unit reinforcements and withdrawal ===
  * TIPS
- * - The transformation of a unit can be achieved by performing "addActor" 
+ * - The transformation of a unit can be achieved by performing 
+ *   "addActor"/"addEnemy"/"addGuest"
  *   on an event that is already participating in the battle.
  * 
  * 	this.addActor(eventId, actorId);
  * 		# Make the event with eventId a new actor with actorId.
  * 	this.addEnemy(eventId, enemyId);
  * 		# Make the event with eventId the new enemy with enemyId.
+ *  this.addGuest(eventId, actorId);
+ *      # Make the event with eventId a new guest actor with actorId.
  *  this.removeUnit(eventId);
  *      # Removes the event with eventId from the battle. If it is an actor, 
  *      # they will also leave the party. Unlike being incapacitated, 
@@ -2360,6 +2368,11 @@
  * @text Y座標
  * @desc 参照したいY座標です。マップ左上が(0, 0)です。
  * @min 0
+ * @arg isUnit
+ * @type boolean
+ * @text ユニットか
+ * @desc イベントがユニット（アクター/エネミー/ゲスト）の時のみIDを返します。
+ * @default true
  * 
  * @command checkRegionId
  * @text 指定リージョンにアクターがいるかの判定
@@ -3065,8 +3078,9 @@
  *      # 行動中のイベントがいない場合は無効です。
  * 
  * ===イベントやユニットの座標の取得に関係するコマンド===
- *   this.isEventIdXy(variableId, x, y);
- *      # 指定した座標のユニットのイベントIDを取得します。
+ *   this.isEventIdXy(variableId, x, y, isUnit);
+ *      # 指定した座標のイベントIDを取得します(isUnitは true または false)。
+ *      # isUnitが true だとアクター/エネミー/ゲストの時のみIDを返します。
  *   this.checkRegionId(switchId, regionId);
  *      # 指定したリージョンID上にアクターユニットがいるか判定します。
  * 
@@ -3090,7 +3104,6 @@
  *      # 指定したイベントIDのユニットを戦闘不能にします。
  *      # unitAddStateでも可能ですが、
  *      # 戦闘不能にする処理は頻用するため別に用意しています。
- *      # マップからいなくなるため、逃走などの演出にも使用可能です。
  *   this.unitRevive(eventId);
  *      # 指定したイベントIDのユニットを復活します。
  *      # unitRemoveStateでも可能だが、
@@ -3119,6 +3132,8 @@
  *      # eventIdのイベントをactorIdの新規アクターにします。
  *   this.addEnemy(eventId, enemyId);
  *      # eventIdのイベントをenemyIdの新規エネミーにします。
+ *   this.addGuest(eventId, actorId);
+ *      # eventIdのイベントをactorIdの新規ゲストユニットにします。
  *   this.removeUnit(eventId);
  *      # eventIdのイベントを戦闘から離脱させます。
  *      # アクターの場合、パーティメンバーからも離脱します。
@@ -3462,7 +3477,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
     });
 
     PluginManager.registerCommand(pluginName, "isEventIdXy", function(args) {
-        this.isEventIdXy(Number(args.variableId), Number(args.x), Number(args.y));
+        this.isEventIdXy(Number(args.variableId), Number(args.x), Number(args.y), args.isUnit);
     });
 
     PluginManager.registerCommand(pluginName, "checkRegionId", function(args) {
@@ -3568,7 +3583,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
     //----------------------------------------------------------------
     // 初期化処理
     //----------------------------------------------------------------
-    var _SRPG_Game_Temp_initialize = Game_Temp.prototype.initialize;
+    const _SRPG_Game_Temp_initialize = Game_Temp.prototype.initialize;
     Game_Temp.prototype.initialize = function() {
     _SRPG_Game_Temp_initialize.call(this);
     this._MoveTable = [];
@@ -3580,6 +3595,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
     this._ActiveEvent = null;
     this._TargetEvent = null;
     this._OriginalPos = [];
+    this._originalMove = 0;
     this._SrpgEventList = [];
     this._autoMoveDestinationValid = false;
     this._autoMoveDestinationX = -1;
@@ -3804,9 +3820,14 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
         return this._OriginalPos;
     };
 
+    Game_Temp.prototype.originalMove = function() {
+        return this._OriginalMove;
+    };
+
     // 行動中のイベントの元々の座標（移動前の座標）を設定する
-    Game_Temp.prototype.reserveOriginalPos = function(x, y) {
+    Game_Temp.prototype.reserveOriginalPos = function(x, y, move) {
         this._OriginalPos = [x, y];
+        this._OriginalMove = move;
     };
 
     //----------------------------------------------------------------
@@ -3951,7 +3972,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
         this._SrpgBattleWindowRefreshFlag = [false, null, null];
         this._SrpgWaitMoving = false;
         this._SrpgActorCommandWindowRefreshFlag = [false, null];
-        this._SrpgActorCommandStatusWindowRefreshFlag = [false, null];
+        this._SrpgActorCommandStatusWindowRefreshFlag = [false, null, undefined];
         this._srpgAllActors = []; // SRPGモードに参加する全てのアクターの配列
         this._searchedItemList = [];
         this._SrpgWinLoseCondition = [];
@@ -4682,7 +4703,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
 		else item = $dataSkills[user.attackSkillId()];
 
 		$gameTemp.clearMoveTable();
-		event.makeMoveTable($gameTemp.originalPos()[0], $gameTemp.originalPos()[1], user.srpgMove(), null, user.srpgThroughTag());
+		event.makeMoveTable($gameTemp.originalPos()[0], $gameTemp.originalPos()[1], $gameTemp.originalMove(), null, user.srpgThroughTag());
 		if (item.meta.notUseAfterMove) { // cannot move before attacking
 			var x = event.posX();
 			var y = event.posY();
@@ -4759,13 +4780,13 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
     };
 
     // 行動中アクターの簡易ステータスウィンドウのリフレッシュフラグを設定する（同時にユニットの情報を保持する）
-    Game_System.prototype.setSrpgActorCommandStatusWindowNeedRefresh = function(battlerArray) {
-        this._SrpgActorCommandStatusWindowRefreshFlag = [true, battlerArray];
+    Game_System.prototype.setSrpgActorCommandStatusWindowNeedRefresh = function(battlerArray, adjacent) {
+        this._SrpgActorCommandStatusWindowRefreshFlag = [true, battlerArray, adjacent];
     };
 
     // 行動中アクターの簡易ステータスウィンドウのリフレッシュフラグをクリアする
     Game_System.prototype.clearSrpgActorCommandStatusWindowNeedRefresh = function() {
-        this._SrpgActorCommandStatusWindowRefreshFlag = [false, null];
+        this._SrpgActorCommandStatusWindowRefreshFlag = [false, null, undefined];
     };
 
     // 勝利・敗北条件ウィンドウの内容を返す
@@ -6206,7 +6227,14 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
     Game_Enemy.prototype.traitObjects = function() {
         if (this.srpgUseActorParamId() > 0) {
             const actor = $gameActors.actor(this.srpgUseActorParamId());
-            return actor.traitObjects();
+            var objects = Game_Battler.prototype.traitObjects.call(this);
+            objects = objects.concat([actor.actor(), actor.currentClass()]);
+            var equips = actor.equips();
+            for (var i = 0; i < equips.length; i++) {
+                var item = equips[i];
+                if (this.isEquipValid(item)) objects.push(item);
+            }
+            return objects;
         } else {
             let objects = _SRPG_Game_Enemy_traitObjects.call(this);
             const weapon = $dataWeapons[this.srpgWeaponId()];
@@ -7049,7 +7077,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
                                 // 行動可能なら移動の処理に移る
                                 if (battlerArray[1].canInput() === true) {
                                     $gameParty.pushSrpgBattleActors(battlerArray[1]);
-                                    $gameTemp.reserveOriginalPos($gameTemp.activeEvent().posX(), $gameTemp.activeEvent().posY());
+                                    $gameTemp.reserveOriginalPos($gameTemp.activeEvent().posX(), $gameTemp.activeEvent().posY(), battlerArray[1].srpgMove());
                                     $gameSystem.setSrpgActorCommandStatusWindowNeedRefresh(battlerArray);
                                     $gameSystem.setSubBattlePhase('actor_move');
                                 } else {
@@ -7300,7 +7328,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
     // イベントの実行に関わる処理
     //----------------------------------------------------------------
     //イベントの実行順序を変更する（実行待ちのイベントを優先する）
-    var _SRPG_Game_Map_setupStartingMapEvent = Game_Map.prototype.setupStartingMapEvent;
+    const _SRPG_Game_Map_setupStartingMapEvent = Game_Map.prototype.setupStartingMapEvent;
     Game_Map.prototype.setupStartingMapEvent = function() {
         if ($gameTemp.isSrpgEventList()) {
             var event = $gameTemp.shiftSrpgEventList(); // 実行待ちイベントを順番に取り出す
@@ -7712,11 +7740,15 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
     // イベントやユニットの座標の取得に関係するコマンド
     //----------------------------------------------------------------
     // 指定した座標のユニットのイベントIDを取得する
-    Game_Interpreter.prototype.isEventIdXy = function(variableId, x, y) {
+    Game_Interpreter.prototype.isEventIdXy = function(variableId, x, y, isUnit) {
         $gameVariables.setValue(variableId, 0);
         $gameMap.eventsXy(x, y).forEach(function(event) {
-            let battler = $gameSystem.setEventIdToBattler(event.eventId());
-            if (battler) $gameVariables.setValue(variableId, event.eventId());
+            if (isUnit === 'true' || isUnit === true) {
+                let battler = $gameSystem.setEventIdToBattler(event.eventId());
+                if (battler) $gameVariables.setValue(variableId, event.eventId());
+            } else {
+                $gameVariables.setValue(variableId, event.eventId());
+            }
         });
         return true;
     };
@@ -8715,10 +8747,15 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
         this.refresh();
     };
 
+    // ユニットを返す
+    Window_SrpgStatus.prototype.battler = function() {
+        return this._battler;
+    };
+
     // リフレッシュ
     Window_SrpgStatus.prototype.refresh = function() {
         Window_StatusBase.prototype.refresh.call(this);
-        if (this._battler) {
+        if (this.battler()) {
             if (this._type === 'actor') {
                 this.drawContentsActor();
             } else if (this._type === 'enemy') {
@@ -8729,57 +8766,62 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
 
     // アクターのステータスの描画
     Window_SrpgStatus.prototype.drawContentsActor = function() {
-        var lineHeight = this.lineHeight();
-        this.drawActorName(this._battler, 6, lineHeight * 0);
-        this.drawActorClass(this._battler, 192, lineHeight * 0);
+        const lineHeight = this.lineHeight();
+        const battler = this.battler();
+        this.drawActorName(battler, 6, lineHeight * 0);
+        this.drawActorClass(battler, 192, lineHeight * 0);
         if (this._flip) {
-            this.drawActorFace(this._battler, 6, lineHeight * 1);
+            this.drawActorFace(battler, 6, lineHeight * 1);
             this.drawBasicInfoActor(176, lineHeight * 1);
         } else {
-            this.drawActorFace(this._battler, 220, lineHeight * 1);
+            this.drawActorFace(battler, 220, lineHeight * 1);
             this.drawBasicInfoActor(6, lineHeight * 1);
         }
-        this.drawActorSrpgEqiup(this._battler, 6, lineHeight * 5);
+        this.drawActorSrpgEqiup(battler, 6, lineHeight * 5);
         this.drawParameters(6, lineHeight * 6);
         this.drawSrpgParameters(6, lineHeight * 9);
     };
 
     // エネミーのステータスの描画
     Window_SrpgStatus.prototype.drawContentsEnemy = function() {
-        var lineHeight = this.lineHeight();
-        this.drawActorName(this._battler, 6, lineHeight * 0);
-        this.drawEnemyClass(this._battler, 192, lineHeight * 0);
+        const lineHeight = this.lineHeight();
+        const battler = this.battler();
+        this.drawActorName(battler, 6, lineHeight * 0);
+        this.drawEnemyClass(battler, 192, lineHeight * 0);
         if (this._flip) {
-            this.drawEnemyFace(this._battler, 6, lineHeight * 1);
+            this.drawEnemyFace(battler, 6, lineHeight * 1);
             this.drawBasicInfoEnemy(176, lineHeight * 1);
         } else {
-            this.drawEnemyFace(this._battler, 220, lineHeight * 1);
+            this.drawEnemyFace(battler, 220, lineHeight * 1);
             this.drawBasicInfoEnemy(6, lineHeight * 1);
         }
-        this.drawEnemySrpgEqiup(this._battler, 6, lineHeight * 5);
+        this.drawEnemySrpgEqiup(battler, 6, lineHeight * 5);
         this.drawParameters(6, lineHeight * 6);
         this.drawSrpgParameters(6, lineHeight * 9);
     };
 
     // アクターのLv, EXP, ステート、HP, MP, TPの描画
     Window_SrpgStatus.prototype.drawBasicInfoActor = function(x, y) {
-        var lineHeight = this.lineHeight();
-        this.drawActorLevel(this._battler, x, y + lineHeight * 0);
-        this.drawActorIcons(this._battler, x, y + lineHeight * 1);
-        this.placeBasicGaugesSrpg(this._battler, x, y + lineHeight * 2);
+        const lineHeight = this.lineHeight();
+        const battler = this.battler();
+        this.drawActorLevel(battler, x, y + lineHeight * 0);
+        this.drawActorIcons(battler, x, y + lineHeight * 1);
+        this.placeBasicGaugesSrpg(battler, x, y + lineHeight * 2);
     };
 
     // エネミーのLv, ステート、HP, MP, TPの描画
     Window_SrpgStatus.prototype.drawBasicInfoEnemy = function(x, y) {
-        var lineHeight = this.lineHeight();
-        this.drawEnemyLevel(this._battler, x, y + lineHeight * 0);
-        this.drawActorIcons(this._battler, x, y + lineHeight * 1);
-        this.placeBasicGaugesSrpg(this._battler, x, y + lineHeight * 2);
+        const lineHeight = this.lineHeight();
+        const battler = this.battler();
+        this.drawEnemyLevel(battler, x, y + lineHeight * 0);
+        this.drawActorIcons(battler, x, y + lineHeight * 1);
+        this.placeBasicGaugesSrpg(battler, x, y + lineHeight * 2);
     };
 
     // 攻撃力などパラメータの描画
     Window_SrpgStatus.prototype.drawParameters = function(x, y) {
-        var lineHeight = this.lineHeight();
+        const lineHeight = this.lineHeight();
+        const battler = this.battler();
         for (var i = 0; i < 6; i++) {
             var paramId = i + 2;
             var x2 = x + 188 * (i % 2);
@@ -8787,24 +8829,25 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
             this.changeTextColor(ColorManager.systemColor());
             this.drawText(TextManager.param(paramId), x2, y2, 120);
             this.resetTextColor();
-            this.drawText(this._battler.param(paramId), x2 + 120, y2, 48, 'right');
+            this.drawText(battler.param(paramId), x2 + 120, y2, 48, 'right');
         }
     };
 
     // 移動力と武器射程の描画
     Window_SrpgStatus.prototype.drawSrpgParameters = function(x, y) {
+        const battler = this.battler();
         this.changeTextColor(ColorManager.systemColor());
         this.drawText(_textSrpgMove, x, y, 120);
         this.resetTextColor();
-        this.drawText(this._battler.srpgMove(), x + 120, y, 48, 'right');
+        this.drawText(battler.srpgMove(), x + 120, y, 48, 'right');
         this.changeTextColor(ColorManager.systemColor());
         this.drawText(_textSrpgWeaponRange, x + 188, y, 120);
         this.resetTextColor();
         var text = '';
-        if (this._battler.srpgWeaponMinRange() > 0) {
-            text += this._battler.srpgWeaponMinRange() + '-';
+        if (battler.srpgWeaponMinRange() > 0) {
+            text += battler.srpgWeaponMinRange() + '-';
         }
-        text += this._battler.srpgWeaponRange();
+        text += battler.srpgWeaponRange();
         this.drawText(text, x + 188 + 72, y, 96, 'right');
     };
 
@@ -10344,6 +10387,8 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
         this._callSrpgBattle = false;
         this._srpgBattleResultWindowCount = 0;
         this._rewards = {};
+        this.MovementProcessingX = -1;
+        this.MovementProcessingY = -1;
     };
 
     //----------------------------------------------------------------
@@ -10925,6 +10970,8 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
             this.srpgAfterActorEquip();
             return;
         }
+        // updateの拡張部分
+        this.srpgExtendProcessing();
         // ウィンドウの開閉
         this.srpgWindowOpenClose();
         // イベント実行中は以下の処理をスキップする
@@ -10998,6 +11045,20 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
         }
     };
 
+    // updateの拡張部分
+    Scene_Map.prototype.srpgExtendProcessing = function() {
+        if ($gamePlayer.x !== this.MovementProcessingX || $gamePlayer.y !== this.MovementProcessingY) {
+            this.MovementProcessingX = $gamePlayer.x;
+            this.MovementProcessingY = $gamePlayer.y;
+            this.srpgMovementExtension();
+        }
+    };
+
+    // カーソルが移動した時の追加処理
+    Scene_Map.prototype.srpgMovementExtension = function() {
+        //
+    };
+
     // ウィンドウの開閉
     Scene_Map.prototype.srpgWindowOpenClose = function() {
         // ステータスウィンドウの開閉
@@ -11027,10 +11088,14 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
         }
         // アクター行動時に画面下部に表示するステータスウィンドウの開閉
         var flag = $gameSystem.srpgActorCommandStatusWindowNeedRefresh();
-        if (!flag) flag = [false, null];
+        if (!flag) flag = [false, null, undefined];
         if (flag[0]) {
             if (!this._mapSrpgActorCommandStatusWindow.isOpen() && !this._mapSrpgActorCommandStatusWindow.isOpening()) {
                 this._mapSrpgActorCommandStatusWindow.setBattler(flag[1][1]);
+            } else if (flag[2]) {
+                this._mapSrpgActorCommandStatusWindow.setBattler(flag[1][1]);
+                $gameSystem.setSrpgActorCommandStatusWindowNeedRefresh(flag[1]);
+
             }
         } else {
             if (this._mapSrpgActorCommandStatusWindow.isOpen() && !this._mapSrpgActorCommandStatusWindow.isClosing()) {
@@ -11082,7 +11147,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
             }
         }
         var flag = $gameSystem.srpgActorCommandStatusWindowNeedRefresh();
-        if (!flag) flag = [false, null];
+        if (!flag) flag = [false, null, undefined];
         if (!flag[0]) {
             if (this._mapSrpgActorCommandStatusWindow.isOpen() && !this._mapSrpgActorCommandStatusWindow.isClosing()) {
                 return true;
@@ -11526,9 +11591,13 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
 
     // アクターコマンドからの装備変更の後処理
     Scene_Map.prototype.srpgAfterActorEquip = function() {
-        var event = $gameTemp.activeEvent();
-        $gameSystem.srpgMakeMoveTableOriginalPos(event);
-        $gameTemp.setResetMoveList(true);
+        const event = $gameTemp.activeEvent();
+        const battler = $gameSystem.EventToUnit(event.eventId())[1];
+        if (battler.srpgMove() !== $gameTemp.originalMove()) {
+            $gameTemp.reserveOriginalPos(event.posX(), event.posY(), battler.srpgMove());
+            $gameSystem.srpgMakeMoveTableOriginalPos(event);
+            $gameTemp.setResetMoveList(true);
+        }
         $gameTemp.setSrpgActorEquipFlag(false); // 処理終了
         return;
     };
