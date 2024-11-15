@@ -10,6 +10,7 @@
 * @plugindesc SRPG Battle UI adjustment, edited by Shoukang and Ohisama Craft.
 * @author SRPG Team
 * @base SRPG_core_MZ
+* @orderAfter SRPG_core_MZ
 * @orderAfter SRPG_BattlePrepare_MZ
 * 
 * @param useTurnWindow
@@ -63,6 +64,7 @@
 * @plugindesc SRPG戦闘でのメニュー画面の変更(Shoukang, おひさまクラフトによる改変あり)
 * @author SRPG Team
 * @base SRPG_core_MZ
+* @orderAfter SRPG_core_MZ
 * @orderAfter SRPG_BattlePrepare_MZ
 *
 * @param useTurnWindow
