@@ -10,6 +10,7 @@
  * @plugindesc SRPG cursor, movement, and selection upgrades, edited by OhisamaCraft.
  * @author Dr. Q
  * @base SRPG_core_MZ
+ * @orderAfter SRPG_core_MZ
  *
  * @param Cursor-Style Movement
  * @desc Make the cursor move like a cursor
@@ -129,6 +130,7 @@
  * @plugindesc SRPG用のカーソル、移動および選択を改善します（おひさまクラフトによる改変）。
  * @author Dr. Q
  * @base SRPG_core_MZ
+ * @orderAfter SRPG_core_MZ
  *
  * @param Cursor-Style Movement
  * @desc カーソル移動をカーソル形式にします。
@@ -256,6 +258,9 @@
 
 	var autoTarget = !!eval(parameters['Auto Target']);
 	var autoSelect = Number(parameters['Auto Select']);
+
+	var UX_Windows_parameters = PluginManager.parameters('SRPG_UX_Windows_MZ');
+	var _srpgAutoOpenActorCommandStatusWindow = !!eval(UX_Windows_parameters['srpgAutoOpenActorCommandStatusWindow']);
 
 //====================================================================
 // cursor-style movement
@@ -386,6 +391,16 @@
 			$gamePlayer.slideTo(event.posX(), event.posY());
 		}
 		return _srpg_UXCursor_triggerdCancelInUpdateCallMenu.call(this);
+    }
+
+	// アクターの移動処理キャンセル
+	const srpgUXWindows_Scene_Map_srpgCancelActorMove = Scene_Map.prototype.srpgCancelActorMove;
+    Scene_Map.prototype.srpgCancelActorMove = function(){
+		const battlerArray = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId());
+		srpgUXWindows_Scene_Map_srpgCancelActorMove.call(this);
+		if (_srpgAutoOpenActorCommandStatusWindow) {
+			$gameSystem.setSrpgActorCommandStatusWindowNeedRefresh(battlerArray, true);
+		}
     }
 
 	// If autoselect applies, cancelling the battle preview skips back to the command window
