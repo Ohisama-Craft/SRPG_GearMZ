@@ -10,8 +10,10 @@
  * @plugindesc SRPG advanced AI (v0.9), edited by OhisamaCraft.
  * @author Dr. Q
  * @base SRPG_core_MZ
- * @orderAfter SRPG_AoE_MZ
+ * @base SRPG_RangeControl_MZ
+ * @orderAfter SRPG_core_MZ
  * @orderAfter SRPG_RangeControl_MZ
+ * @orderAfter SRPG_AoE_MZ
  * @orderAfter SRPG_PositionEffects_MZ
  * 
  * @param Target Formula
@@ -209,8 +211,10 @@
  * @plugindesc SRPG強化AI (v0.9)、おひさまクラフトによる改変。
  * @author Dr. Q
  * @base SRPG_core_MZ
- * @orderAfter SRPG_AoE_MZ
+ * @base SRPG_RangeControl_MZ
+ * @orderAfter SRPG_core_MZ
  * @orderAfter SRPG_RangeControl_MZ
+ * @orderAfter SRPG_AoE_MZ
  * @orderAfter SRPG_PositionEffects_MZ
  * 
  * @param Target Formula
