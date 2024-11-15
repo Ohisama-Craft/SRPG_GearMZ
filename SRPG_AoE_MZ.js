@@ -10,6 +10,7 @@
  * @plugindesc SRPG area-of-effect skills, edited by OhisamaCraft.
  * @author Dr. Q + アンチョビ, Boomy, Shoukang
  * @base SRPG_core_MZ
+ * @orderAfter SRPG_core_MZ
  * 
  * @param AoE Color
  * @desc CSS Color for AoE squares
@@ -58,6 +59,7 @@
  * copyright 2020 SRPG Team. all rights reserved.
  * Released under the MIT license.
  * ============================================================================
+ * This plugin is a required plugin. Please place it below SRPG_core_MZ.js.
  * Allows you to define an area of effect for attacks
  * Based on SRPG_AreaAttack.js by アンチョビ
  *
@@ -282,6 +284,7 @@
  * @plugindesc SRPG戦闘で範囲攻撃（スキル）を実装します(SRPG_gearMZ用)
  * @author Dr. Q + アンチョビ, Boomy, Shoukang, おひさまクラフト
  * @base SRPG_core_MZ
+ * @orderAfter SRPG_core_MZ
  * 
  * @param AoE Color
  * @desc 範囲表示のための CSS Color を設定します
@@ -330,6 +333,7 @@
  * copyright 2020 SRPG Team. all rights reserved.
  * Released under the MIT license.
  * ============================================================================
+ * このプラグインは必須プラグインです。SRPG_core_MZ.jsの下に配置してください。
  * 範囲効果のあるスキル・アイテムを作成できるようにします
  * アンチョビ氏による SRPG_AreaAttack.js をベースにしています
  *
