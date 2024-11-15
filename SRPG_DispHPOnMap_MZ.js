@@ -16,6 +16,7 @@
  * @plugindesc v1.01 It enables to display HP on the map during SRPG combat (edited by Ohisama-Craft).
  * @author ヱビ
  * @base SRPG_core_MZ
+ * @orderAfter SRPG_core_MZ
  * 
  * @param actorHPColor1
  * @type number
@@ -79,6 +80,7 @@
  * @plugindesc v1.01 SRPG戦闘中、マップでもHPが確認できるようになるプラグイン(おひさまクラフトによる改変あり)。
  * @author ヱビ
  * @base SRPG_core_MZ
+ * @orderAfter SRPG_core_MZ
  * 
  * @param actorHPColor1
  * @type number
