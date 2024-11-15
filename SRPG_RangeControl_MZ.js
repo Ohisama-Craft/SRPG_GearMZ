@@ -10,6 +10,7 @@
  * @plugindesc SRPG line of sight, passability, variable range, and more, edited by OhisamaCraft.
  * @author Dr. Q
  * @base SRPG_core_MZ
+ * @orderAfter SRPG_core_MZ
  *
  * @param Range
  *
@@ -178,8 +179,9 @@
  * copyright 2020 SRPG Team. all rights reserved.
  * Released under the MIT license.
  * ============================================================================
+ * This plugin is a required plugin. Please place it below SRPG_core_MZ.js.
  * Adds line of sight, modifiable ranges, passability options, zone of control,
- * and terrain-based movement costs for SRPG combat
+ * and terrain-based movement costs for SRPG combat.
  *
  * Zone of control (ZoC) in this plugin is the ability to prevent opponent units 
  * from passing through the 4 squares around the unit that has ZoC
@@ -238,6 +240,7 @@
  * @plugindesc SRPG戦闘での射線（攻撃範囲の制限）、移動、射程の変更などを実装する(おひさまクラフトによる改変あり)。
  * @author Dr. Q
  * @base SRPG_core_MZ
+ * @orderAfter SRPG_core_MZ
  *
  * @param Range
  *
@@ -406,6 +409,7 @@
  * copyright 2020 SRPG Team. all rights reserved.
  * Released under the MIT license.
  * ============================================================================
+ * このプラグインは必須プラグインです。SRPG_core_MZ.jsの下に配置してください。
  * SRPG戦闘において、射線（攻撃範囲の制限）、射程の変更、通行オプション、zone of control(ZoC)、
  * 地形タグによる移動コストの機能を追加する。
  * 
