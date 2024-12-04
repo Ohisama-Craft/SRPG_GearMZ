@@ -1,7 +1,7 @@
 //=============================================================================
 // SRPG_core_MZ.js -SRPGギアMZ-
-// バージョン      : 1.21 + Q
-// 最終更新日      : 2024/11/15
+// バージョン      : 1.22 + Q
+// 最終更新日      : 2024/11/22
 // 製作            : Tkool SRPG team（有明タクミ、RyanBram、Dr.Q、Shoukang、Boomy）
 // 協力            : アンチョビさん、エビさん、Tsumioさん
 // ベースプラグイン : SRPGコンバータMV（神鏡学斗(Lemon slice), Dr. Q, アンチョビ, エビ, Tsumio）
@@ -331,6 +331,51 @@
  * @desc Displays an arrow button to switch actors with a click. (true / false)
  * @type boolean
  * @default true
+ * 
+ * @param SRPGSprite
+ * @desc Settings for sprites used in SRPG battles, such as movement range display.
+ * @default Sprite Settings
+ * 
+ * @param srpgSpriteColorSample
+ * @parent SRPGSprite
+ * @desc The address of the sprite color sample. Copy the color name as a string.
+ * @default https://www.w3schools.com/cssref/css_colors.asp
+ * 
+ * @param srpgMoveTileSpriteColor
+ * @parent SRPGSprite
+ * @desc Change the movement range color. Please refer to the color sample below.
+ * https://www.w3schools.com/cssref/css_colors.asp
+ * @type string
+ * @default RoyalBlue
+ * 
+ * @param srpgAttackTileSpriteColor
+ * @parent SRPGSprite
+ * @desc Change the attack range color. Please refer to the color sample below.
+ * https://www.w3schools.com/cssref/css_colors.asp
+ * @type string
+ * @default Tomato
+ * 
+ * @param srpgTileSpriteBlendMode
+ * @parent SRPGSprite
+ * @desc Change the blending method for the display sprites of movement/attack range.
+ * @type select
+ * @option Normal
+ * @value 0
+ * @option Additive
+ * @value 1
+ * @option Multiply
+ * @value 2
+ * @option Screen
+ * @value 3
+ * @default 0
+ * 
+ * @param srpgTileSpriteOpacity
+ * @parent SRPGSprite
+ * @desc Change the opacity of the movement/attack range. recommended : Normal/Multiply 150, Additive/Screen 200.
+ * @type number
+ * @min 0
+ * @max 255
+ * @default 150
  *
  * @param SRPGTerm
  * @desc Set terms such as "standby" and "move".
@@ -2030,6 +2075,51 @@
  * @desc 画面左上にクリックでアクターを切り替えられる矢印ボタンを表示します。(true / false)
  * @type boolean
  * @default true
+ * 
+ * @param SRPGSprite
+ * @desc 移動範囲表示などSRPG戦闘で使用するスプライトの設定です。
+ * @default スプライトの設定
+ * 
+ * @param srpgSpriteColorSample
+ * @parent SRPGSprite
+ * @desc スプライトの色見本のアドレスです。色の名前を文字列としてコピーします。
+ * @default https://www.w3schools.com/cssref/css_colors.asp
+ * 
+ * @param srpgMoveTileSpriteColor
+ * @parent SRPGSprite
+ * @desc 移動範囲の色を変更します。色見本は以下を参照してください。
+ * https://www.w3schools.com/cssref/css_colors.asp
+ * @type string
+ * @default RoyalBlue
+ * 
+ * @param srpgAttackTileSpriteColor
+ * @parent SRPGSprite
+ * @desc 攻撃範囲の色を変更します。色見本は以下を参照してください。
+ * https://www.w3schools.com/cssref/css_colors.asp
+ * @type string
+ * @default Tomato
+ * 
+ * @param srpgTileSpriteBlendMode
+ * @parent SRPGSprite
+ * @desc 移動/攻撃範囲の表示スプライトの合成方法を変更します。
+ * @type select
+ * @option 通常
+ * @value 0
+ * @option 加算
+ * @value 1
+ * @option 乗算
+ * @value 2
+ * @option スクリーン
+ * @value 3
+ * @default 0
+ * 
+ * @param srpgTileSpriteOpacity
+ * @parent SRPGSprite
+ * @desc 移動/攻撃範囲の不透明度を変更します。合成方法が通常/乗算では150程度、加算/スクリーンでは200程度が推奨です。
+ * @type number
+ * @min 0
+ * @max 255
+ * @default 150
  *
  * @param SRPGTerm
  * @desc 『待機』や『移動力』などの用語を設定します。
@@ -3419,6 +3509,10 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
     var _srpgSkipTargetForSelf = parameters['srpgSkipTargetForSelf'] || 'true';
     var _srpgRangeTerrainTag7 = parameters['srpgRangeTerrainTag7'] || 'true';
     var _srpgUseArrowButtons = parameters['srpgUseArrowButtons'] || 'true';
+    var _srpgMoveTileSpriteColor = parameters['srpgMoveTileSpriteColor'] || 'RoyalBlue';
+    var _srpgAttackTileSpriteColor = parameters['srpgAttackTileSpriteColor'] || 'Tomato';
+    var _srpgTileSpriteBlendMode = Number(parameters['srpgTileSpriteBlendMode'] || 0);
+    var _srpgTileSpriteOpacity = Number(parameters['srpgTileSpriteOpacity'] || 150);
     var _textSrpgEquip = parameters['textSrpgEquip'] || '装備';
     var _textSrpgMove = parameters['textSrpgMove'] || '移動力';
     var _textSrpgWeaponRange = parameters['textSrpgWeaponRange'] || '武器射程';
@@ -7858,7 +7952,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
                 if (battler.isDead()) {
                     const event = $gameMap.event(eventId);
                     if (!event.isErased()) {
-                        this.isActor() ? SoundManager.playActorCollapse() : SoundManager.playEnemyCollapse();
+                        battler.isActor() ? SoundManager.playActorCollapse() : SoundManager.playEnemyCollapse();
                         event.erase();
                         var valueId = battler.isActor() ? _existActorVarID : _existEnemyVarID;
                         var oldValue = $gameVariables.value(valueId);
@@ -8385,9 +8479,9 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
         this._posX = x;
         this._posY = y;
         if (attackFlag === true) {
-            this.bitmap.fillAll('red');
+            this.bitmap.fillAll(_srpgAttackTileSpriteColor);
         } else {
-            this.bitmap.fillAll('blue');
+            this.bitmap.fillAll(_srpgMoveTileSpriteColor);
         }    
     }
 
@@ -8405,7 +8499,7 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
         this.bitmap = new Bitmap(tileWidth, tileHeight);
         this.anchor.x = 0.5;
         this.anchor.y = 0.5;
-        this.blendMode = 1;
+        this.blendMode = _srpgTileSpriteBlendMode;
     };
 
     // 更新
@@ -8431,8 +8525,8 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
     // アニメーションの更新
     Sprite_SrpgMoveTile.prototype.updateAnimation = function() {
         this._frameCount++;
-        this._frameCount %= 40;
-        this.opacity = (40 - this._frameCount) * 3;
+		this._frameCount %= 90;
+		this.opacity = _srpgTileSpriteOpacity - Math.abs(this._frameCount - 45) * 2;
     };
 
 //====================================================================
@@ -11586,7 +11680,6 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
         }
         $gameTemp.setAutoBattleFlag(false);
         $gameTemp.setTurnEndFlag(false); // 処理終了
-        return;
     };
 
     // アクターコマンドからの装備変更の後処理
@@ -11599,7 +11692,6 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
             $gameTemp.setResetMoveList(true);
         }
         $gameTemp.setSrpgActorEquipFlag(false); // 処理終了
-        return;
     };
 
     //----------------------------------------------------------------
