@@ -267,11 +267,26 @@ Window_SrpgTerrainEffect.prototype.constructor = Window_SrpgTerrainEffect;
             }
             const terrainStateId = _tagStateList[newTerrainTag];
             if (terrainStateId > 0) {
-                user.addState(terrainStateId);
-                user.setTerrainTag(newTerrainTag);
+                if (user.isStateAddable(terrainStateId)) {
+                    user.addState(terrainStateId);
+                    user.setTerrainTag(newTerrainTag);
+                } else {
+                    user.setTerrainTag(-1);
+                }
             }
         }
 	};
+
+	// アクターコマンドからの装備変更の後処理
+	const _SRPG_TerrainEffect_Scene_Map_srpgAfterActorEquip = Scene_Map.prototype.srpgAfterActorEquip;
+	Scene_Map.prototype.srpgAfterActorEquip = function() {
+		const unitArray = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId());
+		if (!unitArray) return;
+		const user = unitArray[1];
+		user.setTerrainTag(-1);
+        $gameTemp.refreshAura($gameTemp.activeEvent());
+        _SRPG_TerrainEffect_Scene_Map_srpgAfterActorEquip.call(this);
+    };
 
     // ---------------------------------------------------------------------------------------
     // Game_System
