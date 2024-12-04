@@ -575,6 +575,8 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
 
 	var coreParameters = PluginManager.parameters('SRPG_core_MZ');
 	var _srpgPredictionWindowMode = Number(coreParameters['srpgPredictionWindowMode'] || 1);
+	var _srpgMoveTileSpriteColor = coreParameters['srpgMoveTileSpriteColor'] || 'RoyalBlue';
+    var _srpgAttackTileSpriteColor = coreParameters['srpgAttackTileSpriteColor'] || 'Tomato';
 
 //====================================================================
 // Compatibility with plugins expecting SRPG_AreaAttack.js
@@ -1302,9 +1304,9 @@ Sprite_SrpgAoE.prototype.constructor = Sprite_SrpgAoE;
             this.bitmap.fillAll(_areaColor);
         } else {
             if (attackFlag === true) {
-                this.bitmap.fillAll('red');
+                this.bitmap.fillAll(_srpgAttackTileSpriteColor);
             } else {
-                this.bitmap.fillAll('blue');
+                this.bitmap.fillAll(_srpgMoveTileSpriteColor);
             }    
         }
     }
