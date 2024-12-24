@@ -67,6 +67,20 @@
  * @option right
  * @default right
  * 
+ * @param close Terrain Effect Window during events
+ * @desc Set whether to close the terrain effect window during events.
+ * @type boolean
+ * @default true
+ * 
+ * 
+ * @command closeTerrainEffectWindow
+ * @text Close the terrain effect window.
+ * @desc Closes the terrain effect window. It will reopen when the cursor is moved.
+ * 
+ * @command openTerrainEffectWindow
+ * @text Open the terrain effect window.
+ * @desc This is only valid when the BattlePhase is set to 'actor_phase'.
+ * 
  * @help
  * Copyright (c) 2024 SRPG team. All rights reserved.
  * Released under the MIT license.
@@ -97,6 +111,20 @@
  *   <terrainText4:X>
  *      # These are the strings displayed in the terrain effect window. 
  *      # You can set up to 4 lines.
+ * 
+ * ============================================================================
+ * Processes Executable via Event Command > Script (Plugin command)
+ * ============================================================================
+ *  Note:
+ *  The following script commands are only valid when 
+ *  'Close Terrain Effect Window during events' (a setting to automatically 
+ *  close the terrain effect window during events) is set to false.
+ * 
+ *  this.closeTerrainEffectWindow();
+ *      # Closes the terrain effect window.
+ *  this.openTerrainEffectWindow();
+ *      # Opens the terrain effect window. 
+ *      # This is only valid during the 'actor_phase' BattlePhase.
  * 
  */
 
@@ -166,6 +194,20 @@
  * @option right
  * @default right
  * 
+ * @param close Terrain Effect Window during events
+ * @desc イベント中は地形効果ウィンドウを閉じるか設定します。
+ * @type boolean
+ * @default true
+ * 
+ * 
+ * @command closeTerrainEffectWindow
+ * @text 地形効果ウィンドウを閉じる
+ * @desc 地形効果ウィンドウを閉じます。カーソル移動で再び開きます。
+ * 
+ * @command openTerrainEffectWindow
+ * @text 地形効果ウィンドウを開く
+ * @desc BattlePhaseが'actor_phase'の時のみ有効です。
+ * 
  * @help
  * Copyright (c) 2024 SRPG team. All rights reserved.
  * Released under the MIT license.
@@ -195,6 +237,18 @@
  *   <terrainText3:X>
  *   <terrainText4:X>
  *      # 地形効果ウィンドウに表示される文字列です。4行まで設定可能です。
+ * 
+ * ============================================================================
+ * イベントコマンド＞スクリプト（プラグインコマンド）で実行できる処理
+ * ============================================================================
+ *  注意
+ *  以下のスクリプトコマンドは、'close Terrain Effect Window during events'
+ *  （イベント中に自動で地形効果ウィンドウが閉じる設定）がfalseの時のみ有効です。
+ * 
+ *  this.closeTerrainEffectWindow();
+ *      # 地形効果ウィンドウを閉じます
+ *  this.openTerrainEffectWindow();
+ *      # 地形効果ウィンドウを開きます。BattlePhaseが'actor_phase'でのみ有効です。
  */
 
 //====================================================================
@@ -231,6 +285,19 @@ Window_SrpgTerrainEffect.prototype.constructor = Window_SrpgTerrainEffect;
     var _useTerrainEffectWindow = parameters['use Terrain Effect Window'] || 'true';
     var _windowWidth = Number(parameters['Window width'] || 180);
     var _windowPosition = parameters['Window position'] || 'right';
+    var _closeTerrainEffectWindowDuringEvents = parameters['close Terrain Effect Window during events'] || 'true';
+
+//====================================================================
+// ●Plugin Command
+//====================================================================
+    PluginManager.registerCommand(scriptName, "closeTerrainEffectWindow", function() {
+        this.closeTerrainEffectWindow();
+    });
+
+    PluginManager.registerCommand(scriptName, "openTerrainEffectWindow", function() {
+        this.openTerrainEffectWindow();
+    });
+
     // ---------------------------------------------------------------------------------------
     // Game_BattlerBase
     // ---------------------------------------------------------------------------------------
@@ -320,6 +387,27 @@ Window_SrpgTerrainEffect.prototype.constructor = Window_SrpgTerrainEffect;
         const playerTerrainTag = $gameMap.terrainTag($gamePlayer.x, $gamePlayer.y);
         const terrainStateId = _tagStateList[playerTerrainTag];
         if (terrainStateId > 0) $gameSystem.setSrpgTerrainEffectWindowNeedRefresh(playerTerrainTag, true);
+    };
+
+    // ---------------------------------------------------------------------------------------
+    // Game_Interpreter
+    // ---------------------------------------------------------------------------------------
+    // 地形効果ウィンドウを閉じる
+    Game_Interpreter.prototype.closeTerrainEffectWindow = function() {
+        $gameSystem.clearSrpgTerrainEffectWindowNeedRefresh();
+        return true;
+    };
+
+    // 地形効果ウィンドウを開く
+    Game_Interpreter.prototype.openTerrainEffectWindow = function() {
+        if ($gameSystem.isBattlePhase() === 'actor_phase'){
+            const playerTerrainTag = $gameMap.terrainTag($gamePlayer.x, $gamePlayer.y);
+            const terrainStateId = _tagStateList[playerTerrainTag];
+            if (terrainStateId > 0) {
+                $gameSystem.setSrpgTerrainEffectWindowNeedRefresh(playerTerrainTag, true);
+            }
+        }
+        return true;
     };
 
     // ---------------------------------------------------------------------------------------
@@ -431,7 +519,7 @@ Window_SrpgTerrainEffect.prototype.constructor = Window_SrpgTerrainEffect;
         const ww = _windowWidth;
         const wh = this.calcWindowHeight(4, false);
         const wx = (_windowPosition === 'left') ? 0 : Graphics.boxWidth - ww;
-        const wy = this.helpAreaTop();
+        const wy = this.helpAreaTop() + 8;
         return new Rectangle(wx, wy, ww, wh);
     };
 
@@ -475,6 +563,31 @@ Window_SrpgTerrainEffect.prototype.constructor = Window_SrpgTerrainEffect;
             }
 		} else {
             $gameSystem.clearSrpgTerrainEffectWindowNeedRefresh();
+        }
+    };
+
+    // updateの拡張部分
+    const _SRPG_TerrainEffect_Scene_Map_srpgExtendProcessing = Scene_Map.prototype.srpgExtendProcessing;
+    Scene_Map.prototype.srpgExtendProcessing = function() {
+        _SRPG_TerrainEffect_Scene_Map_srpgExtendProcessing.call(this);
+        if (_closeTerrainEffectWindowDuringEvents === 'true') {
+            if ($gameMap.isEventRunning() && 
+                (this._mapSrpgTerrainEffectWindow.isOpen() && !this._mapSrpgTerrainEffectWindow.isClosing())) {
+                $gameSystem.clearSrpgTerrainEffectWindowNeedRefresh();
+            } else if (_useTerrainEffectWindow === 'true' && $gameMap.isEventRunning() === false &&
+            (!this._mapSrpgTerrainEffectWindow.isOpen() && !this._mapSrpgTerrainEffectWindow.isOpening()) &&
+            ($gameSystem.isBattlePhase() === 'actor_phase' &&
+			($gameSystem.isSubBattlePhase() === 'normal' || $gameSystem.isSubBattlePhase() === 'actor_move'))) {
+                const playerTerrainTag = $gameMap.terrainTag($gamePlayer.x, $gamePlayer.y);
+                const terrainStateId = _tagStateList[playerTerrainTag];
+                if (terrainStateId > 0) {
+                    if (playerTerrainTag !== this._mapSrpgTerrainEffectWindow.terrainTag()) {
+                        $gameSystem.setSrpgTerrainEffectWindowNeedRefresh(playerTerrainTag, true);
+                    }
+                } else {
+                    $gameSystem.clearSrpgTerrainEffectWindowNeedRefresh();
+                }
+            }
         }
     };
 
