@@ -782,14 +782,19 @@ Game_Map.prototype.updatePlayerFollowMouse = function() {
   if($gameSystem.isSubBattlePhase() === 'actor_move') $gameTemp.showRoute(x, y);
 };
 */
+  // SRPG_EncounterBattleとの競合対策 この定義はSRPG_EncounterBattleで再定義される
+  Game_System.prototype.srpgEncounterBattle = function() {
+    return false;
+  };
 
   var _SRPG_MO_Game_Player_moveByInput = Game_Player.prototype.moveByInput;
   Game_Player.prototype.moveByInput = function() { 
     if ($gameSystem.isSRPGMode() && $gameSystem.isPlayerFollowMouse() &&
-        !this.isMoving() && this.canMove() && !Graphics._hiddenPointer) {
+        !this.isMoving() && this.canMove() && !Graphics._hiddenPointer && !$gameMessage.isBusy()) {
           var x = $gameMap.canvasToMapX(TouchInput._mouseX);
           var y = $gameMap.canvasToMapY(TouchInput._mouseY);
           if ($gamePlayer.x !== x || $gamePlayer.y !== y) {
+            if ($gameSystem.srpgEncounterBattle() && !$gameMap.isValid(x, y)) return;
             $gamePlayer.setPosition(x, y);
             //patch for show path dan AOE
             if ($gameSystem.isSubBattlePhase() === 'actor_target' && $gameSystem.positionInRange(x, y)) {
