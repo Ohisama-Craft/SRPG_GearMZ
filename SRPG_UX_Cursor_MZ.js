@@ -289,7 +289,7 @@
 	// override movement to act more like a cursor
 	const _SRPG_UXCursor_moveByInput = Game_Player.prototype.moveByInput;
 	Game_Player.prototype.moveByInput = function() {
-		if ($gameSystem.isSRPGMode() && cursorStyle && !this.isMoving()) {
+		if ($gameSystem.isSRPGMode() && cursorStyle && !this.isMoving() && !$gameMessage.isBusy()) {
 			// automatic movement
 			if ($gameTemp.isAutoMoveDestinationValid()) {
 				var x = $gameTemp.autoMoveDestinationX();
