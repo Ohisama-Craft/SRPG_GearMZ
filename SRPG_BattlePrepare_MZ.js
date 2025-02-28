@@ -503,7 +503,7 @@ const pluginName = "SRPG_BattlePrepare_MZ";
         if ($gameSystem.isSRPGMode() == true && $gameSystem.isBattlePhase() === 'battle_prepare') {
             const actor = this.actor(index);
             const rect = this.itemRect(index);
-            const width = ImageManager.faceWidth;
+            const width = ImageManager.standardFaceWidth;
             const height = rect.height - 2;
             if ($gameParty.inRemainingActorList(actor.actorId())) {
                 this.changePaintOpacity(false);
