@@ -392,7 +392,7 @@ Window_Turn.prototype.constructor = Window_Turn;
     if ($gameSystem.isSRPGMode() && $gameSystem.isBattlePhase() === 'battle_prepare') {
       const actor = this.actor(index);
       const rect = this.itemRect(index);
-      const width = (_menuActorDisplayCount === 5) ? 124 : ImageManager.faceWidth;
+      const width = (_menuActorDisplayCount === 5) ? 124 : ImageManager.standardFaceWidth;
       const height = rect.height - 2;
       const heightPadding = (this.numVisibleRows() === 4) ? 0 : 8;
       if ($gameParty.inRemainingActorList(actor.actorId())) {
@@ -413,7 +413,7 @@ Window_Turn.prototype.constructor = Window_Turn;
     } else {
       const actor = this.actor(index);
       const rect = this.itemRect(index);
-      const width = (_menuActorDisplayCount === 5) ? 124 : ImageManager.faceWidth;
+      const width = (_menuActorDisplayCount === 5) ? 124 : ImageManager.standardFaceWidth;
       const height = rect.height - 2;
       const heightPadding = (this.numVisibleRows() === 4) ? 0 : 8;
       //this.changePaintOpacity(actor.isBattleMember());
