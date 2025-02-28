@@ -379,8 +379,8 @@
     };
     
     Window_SrpgActorCommandStatus.prototype.drawActorItemImage = function() {
-        const width = ImageManager.faceWidth;
-        const height = this.fittingHeight(2) - 8;
+        const width = ImageManager.standardFaceWidth;
+        const height = this.fittingHeight(2) - 6;
         this.drawActorFace(this._battler, 1, 1, width, height);
     };
     
@@ -397,8 +397,8 @@
     };
 
 	Window_SrpgActorCommandStatus.prototype.drawEnemyItemImage = function() {
-        const width = ImageManager.faceWidth;
-        const height = this.fittingHeight(2) - 8;
+        const width = ImageManager.standardFaceWidth;
+        const height = this.fittingHeight(2) - 6;
         this.drawEnemyFace(this._battler, 1, 1, width, height);
     };
     
