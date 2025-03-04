@@ -159,10 +159,15 @@
  * 
  * @param srpgActorCommandList
  * @parent BattleExtensionParam
- * @desc make actor command list. 
- * usable:attack,skill,item,equip,wait(split ',')
- * @type string
- * @default attack,skill,item,equip,wait
+ * @desc Create a list of actor commands. Multiple choices allowed, ordered from top to bottom.
+ * @type select[]
+ * @option attack
+ * @option skill
+ * @option item
+ * @option equip
+ * @option wait
+ * @option original
+ * @default ["attack","skill","item","equip","wait"]
  * 
  * @param srpgActorCommandOriginalId
  * @parent srpgActorCommandList
@@ -172,10 +177,21 @@
  *
  * @param srpgMenuCommandList
  * @parent BattleExtensionParam
- * @desc Available: turnEnd,autoBattle,winLose,item,skill,equip,
- * status,formation,options,save,gameEnd,original (separated by ,)
- * @type string
- * @default turnEnd,autoBattle,winLose,status,options,save,gameEnd
+ * @desc Select commands to use in the menu screen. Multiple choices allowed, ordered from top to bottom.
+ * @type select[]
+ * @option turnEnd
+ * @option autoBattle
+ * @option winLose
+ * @option item
+ * @option skill
+ * @option equip
+ * @option status
+ * @option formation
+ * @option options
+ * @option save
+ * @option gameEnd
+ * @option original
+ * @default ["turnEnd","autoBattle","equip","status","WinLose","options","save","gameEnd"]
  *
  * @param srpgPredictionWindowMode
  * @parent BattleExtensionParam
@@ -1183,6 +1199,7 @@
  * 		# If not specified,
  * 		# it will be the one specified in plugin parameters.
  * 		# Available:attack,skill,item,equip,wait,original(separated by , )
+ *      # example: <srpgActorCommandList:skill,original,item,equip,wait>
  * 	<srpgActorCommandOriginalId:X> 
  * 		# Specify the ID of the skill to be used 
  * 		# in the actor command "original".
@@ -1936,10 +1953,15 @@
  * 
  * @param srpgActorCommandList
  * @parent BattleExtensionParam
- * @desc アクターコマンドのリストを作成します。
- * 使用可能:attack,skill,item,equip,wait,original(,で区切る)
- * @type string
- * @default attack,skill,item,equip,wait
+ * @desc アクターコマンドのリストを作成します。複数選択可能で、上から順に並びます。
+ * @type select[]
+ * @option attack
+ * @option skill
+ * @option item
+ * @option equip
+ * @option wait
+ * @option original
+ * @default ["attack","skill","item","equip","wait"]
  * 
  * @param srpgActorCommandOriginalId
  * @parent srpgActorCommandList
@@ -1949,10 +1971,21 @@
  *
  * @param srpgMenuCommandList
  * @parent BattleExtensionParam
- * @desc 使用可能:turnEnd,autoBattle,winLose,item,skill,equip,
- * status,formation,options,save,gameEnd,original(,で区切る)
- * @type string
- * @default turnEnd,autoBattle,winLose,status,options,save,gameEnd
+ * @desc メニュー画面で使用したいコマンドを選びます。複数選択可能で、上から順に並びます。
+ * @type select[]
+ * @option turnEnd
+ * @option autoBattle
+ * @option winLose
+ * @option item
+ * @option skill
+ * @option equip
+ * @option status
+ * @option formation
+ * @option options
+ * @option save
+ * @option gameEnd
+ * @option original
+ * @default ["turnEnd","autoBattle","equip","status","WinLose","options","save","gameEnd"]
  *
  * @param srpgPredictionWindowMode
  * @parent BattleExtensionParam
@@ -2825,13 +2858,13 @@
  * ============================================================================
  * プラグインコマンド
  * ============================================================================
- * SRPGギアMZでは、イベントコマンド＞スクリプトで実行できる処理の一部を
+ * SRPGギアMZでは、イベントコマンド>スクリプトで実行できる処理の一部を
  * プラグインコマンドを使うことでより簡単に利用することが出来ます。
  * 
  *   戦闘の開始と終了
  *   イベントIDや距離、ユニットのパラメータの取得
- * 　ユニットのパラメータの操作
- * 　ユニットの追加（増援）　　　　　　　　　　　　　　　など
+ *   ユニットのパラメータの操作
+ *   ユニットの追加（増援）                          など
  * 
  * また、『戦闘の開始と終了』のように、戦闘の進行に重要なコマンドも含まれています。
  * 
@@ -2933,6 +2966,7 @@
  *      # アクターコマンドを変更します。
  *      # 指定しない場合、プラグインパラメータで指定したものになります。
  *      # 使用可能:attack,skill,item,equip,wait,original(,で区切る)
+ *      # 例:<srpgActorCommandList:skill,original,item,equip,wait>
  *   <srpgActorCommandOriginalId:X> 
  *      # アクターコマンドのoriginalで使用するスキルのIDを指定します。
  *      # 指定しない場合、プラグインパラメータで指定したものになります。
@@ -3549,9 +3583,9 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
     var _srpgAutoBattleStateId = Number(parameters['srpgAutoBattleStateId'] || 14);
     var _srpgBestSearchRouteSize = Number(parameters['srpgBestSearchRouteSize'] || 25);
     var _enemyDefaultClass = parameters['enemyDefaultClass'] || 'エネミー';
-    var _srpgActorCommandList = parameters['srpgActorCommandList'] || 'attack,skill,item,equip,wait';
+    var _srpgActorCommandList = parameters['srpgActorCommandList'] || '["attack","skill","item","equip","wait"]';
     var _srpgActorCommandOriginalId = Number(parameters['srpgActorCommandOriginalId'] || 1);
-    var _srpgMenuCommandList = parameters['srpgMenuCommandList'] || 'turnEnd,autoBattle,item,skill,equip,status,WinLose,options,save,gameEnd';
+    var _srpgMenuCommandList = parameters['srpgMenuCommandList'] || '["turnEnd","autoBattle","WinLose","status","options","save","gameEnd"]';
     var _useMapBattle = Number(parameters['Use Map Battle'] || 2);
     var _mapBattleSwitch = Number(parameters['Map Battle Switch'] || 0);
     var _animDelay = Number(parameters['Animation Delay'] || -1);
@@ -4042,6 +4076,9 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
 
     // 実行待ちイベントリストをクリアする
     Game_Temp.prototype.clearSrpgEventList = function() {
+        for (const event of this._SrpgEventList) {
+            event.clearStartingFlag();
+        }
         this._SrpgEventList = [];
     };
 
@@ -10012,10 +10049,17 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
     Window_ActorCommand.prototype.makeCommandList = function() {
         if ($gameSystem.isSRPGMode()) {
             if (this._actor) {
+                let list = [];
+                const str = _srpgActorCommandList;
                 if (this._actor.actor().meta.srpgActorCommandList) {
-                    var list = this._actor.actor().meta.srpgActorCommandList.split(',');
+                    list = this._actor.actor().meta.srpgActorCommandList.split(',');
                 } else {
-                    var list = _srpgActorCommandList.split(',');
+                    try {
+                        list = JSON.parse(str);
+                        if (!Array.isArray(list)) throw new Error(); // 配列でない場合はエラーを投げる
+                    } catch (e) {
+                        list = str.split(",");
+                    }
                 }
                 for (var i = 0; i < list.length; i++) {
                     switch (list[i]) {
@@ -10319,8 +10363,15 @@ Sprite_SrpgMoveTile.prototype.constructor = Sprite_SrpgMoveTile;
     const _SRPG_Window_MenuCommand_makeCommandList = Window_MenuCommand.prototype.makeCommandList;
     Window_MenuCommand.prototype.makeCommandList = function() {
         if ($gameSystem.isSRPGMode()) {
-            var list = _srpgMenuCommandList.split(',');
-            var enabled = this.areMainCommandsEnabled();
+            let list = [];
+            const str = _srpgMenuCommandList;
+            try {
+                list = JSON.parse(str);
+                if (!Array.isArray(list)) throw new Error(); // 配列でない場合はエラーを投げる
+            } catch (e) {
+                list = str.split(",");
+            }
+            const enabled = this.areMainCommandsEnabled();
             for (var i = 0; i < list.length; i++) {
                 switch (list[i]) {
                 case 'item':
